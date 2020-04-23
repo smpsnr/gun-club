@@ -1,0 +1,37 @@
+{
+    "env": {
+        "es6"    : true,
+        "node"   : true,
+        "browser": true
+    },
+    "extends": [ "eslint:recommended" ],
+
+    "parser"       : "babel-eslint",
+    "parserOptions": {
+
+        "parser"     : "babel-eslint",
+        "sourceType" : "module",
+
+        "ecmaVersion" : 2018,
+        "ecmaFeatures": {
+
+            "globalReturn" : false,
+            "impliedStrict": false,
+            "jsx"          : false
+        }
+    },
+    "rules": {
+        "quotes": [ "error", "single" ],
+        "semi"  : [ "error", "always" ],
+        "curly" : [ "warn" , "all"    ],
+
+        "indent": [ "warn", 4, {
+            "SwitchCase"        : 1,
+            "FunctionExpression": { "parameters": "first" },
+            "CallExpression"    : { "arguments" : "first" }
+        }],
+
+        "no-console"    : "off",
+        "no-fallthrough": "off"
+    }
+}

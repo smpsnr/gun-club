@@ -1,146 +1,76 @@
-import Gun from 'gun';
+import Gun from 'gun-api';
 
-import 'gun/sea';        // security, encryption, & authorization
-import 'gun/lib/webrtc'; // enable automatic peer signaling and discovery
+// enable automatic peer signaling and discovery
+import 'gun/lib/webrtc';
 
 // enable RAD storage adapter backed by IndexedDB
 import 'gun/lib/radix'; import 'gun/lib/radisk';
 import 'gun/lib/store'; import 'gun/lib/rindexed';
 
-import 'gun/lib/path';
+import 'gun/lib/load';
 
+/** @typedef { import('gun/types/chain').IGunChainReference } GunRef */
 const SEA = Gun.SEA;
 
 const port = 8081;
 const peer = `${ location.protocol }//${ location.hostname }:${ port }/gun`;
 
-(() => {
-    // extend SEA functions to base64 encode encrypted data
-    // workaround for https://github.com/amark/gun/issues/783
+Gun.prototype.valMapEnd = function(each, ended) {
+    const gun = this; const props = [];
+    const n = () => {};
 
-    const _encrypt = SEA.encrypt;
-    SEA.encrypt = function(...args) {
-        return _encrypt.apply(this, args)
-            .then(enc => btoa(JSON.stringify(enc)));
-    };
+    let count = 0;
+    each = each || n; ended = ended || n;
 
-    const _decrypt = SEA.decrypt;
-    SEA.decrypt = function(data, ...args) {
-        try     { data = JSON.parse(atob(data)); } catch(e) { /* continue */ }
-        return _decrypt.apply(this, [data, ...args]);
-    };
-})();
+    gun.once(function(list) {
+        const args = Array.prototype.slice.call(arguments);
 
-/**
- * Returns path of this node as an array
- */
-Gun.prototype.getPath = function() {
-    const gun = this; let path = [];
-    gun.back(at => { if (at.has) { path.unshift(at.get); } });
+        // @ts-ignore
+        Gun.node.is(list, (_, prop) => { count += 1; props.push(prop); });
 
-    return path;
+        props.forEach(prop => {
+            gun.get(prop).once(/** @this { GunRef } */ function() {
+                count -= 1; each.apply(this, arguments);
+                if (!count) { ended.apply(this, args); }
+            });
+        });
+    });
+
+    return gun;
 };
 
-/**
- * Get user's secret key to a given path
- * If key does not exist, generate a new one
- */
-async function getTrustKey(user, pair, path) {
+Gun.prototype.value = function(cb, opt) {
 
-    const trust = user.get('trust').get(pair.pub).path(path);
-    let sec = await trust.then();
+    return this.once(/** @this { GunRef } */ function(val, field) {
+        // @ts-ignore
+        if (val) { val = Gun.obj.copy(val); delete val._; }
+        cb.call(this, val, field);
 
-    if (sec) {
-        sec = await SEA.decrypt(sec, pair);
-
-    } else {
-        sec = SEA.random(24).toString();
-        trust.put(await SEA.encrypt(sec, pair));
-
-    } return sec;
-}
-
-/**
- * Encrypt and put data in authenticated user
- * @override function of SEA User (see sea/create.js)
- *
- * @param { Object } data
- * @param { import('gun/types/types').AckCallback } [callback]
- */
-SEA.Gun.User.prototype.secret = async function(data, callback) {
-    const gun  = this;       const user = gun.back(-1).user();
-    const pair = user._.sea; const path = gun.getPath();
-
-    const sec = await getTrustKey(user, pair, path);
-    const enc = await SEA.encrypt(data, sec);
-
-    return gun.put(enc, callback);
+    }, opt);
 };
 
-/**
- * Get and decrypt data from authenticated user
- * @param { String } prop - property to get
- */
-SEA.Gun.User.prototype.getSecret = async function(prop) {
-    const gun  = this;       const user = gun.back(-1).user();
-    const pair = user._.sea; const path = gun.getPath();
+Gun.prototype.valueAt = function(node, at, cb, opt) {
+    let pathNode = node.path(at, '/');
 
-    path.push(prop);
-
-    let sec = await user.get('trust').get(pair.pub).path(path).then();
-    sec = await SEA.decrypt(sec, pair);
-
-    const enc = await gun.get(prop).then();
-    return SEA.decrypt(enc, sec);
+    if (pathNode) { pathNode.value(cb, opt);               }
+    else          { throw new Error(`No such path ${at}`); }
 };
 
-/**
- * Grant read access to another user
- * @override function of SEA User (see sea/create.js)
- *
- * @param { import('gun/types/chain').IGunChainReference } to
- * @param { import('gun/types/types').AckCallback } [callback]
- */
-SEA.Gun.User.prototype.grant = async function(to, callback) {
-    const gun  = this;       const user = gun.back(-1).user();
-    const pair = user._.sea; const path = gun.getPath();
+Gun.prototype.putAt = function(node, at, obj, cb, opt) {
+    let pathNode = node.path(at, '/');
 
-    const dh  = await SEA.secret(await to.get('epub').then(), pair);
+    if (pathNode) {
+        node._.paths = node._.paths || [];
+        pathNode.put(obj, cb, opt); node._.paths.push(at);
 
-    const sec = await getTrustKey(user, pair, path);
-    const enc = await SEA.encrypt(sec, dh);
-
-    // if pub is not already in trust, first put an empty node
-    // workaround for https://github.com/amark/gun/issues/844
-
-    const trust = user.get('trust').get(await to.get('pub').then());
-    if (!await trust.then()) { await trust.path(path).put({}).then(); }
-
-    return trust.path(path).put(enc, callback);
+    } else { throw new Error(`No such path ${at}`); }
 };
 
-/**
- * Get and decrypt data from unauthenticated user
- *
- * @param { String } prop - property to get
- * @param { import('gun/types/types').IGunCryptoKeyPair } pair - trusted keys
- */
-Gun.prototype.getSecret = async function(prop, pair) {
-    const gun  = this; const path = gun.getPath();
-    const user = path.length > 0 ? gun.back(path.length) : gun;
+Gun.prototype.setAt = function(node, at, obj, cb) {
+    let pathNode = node.path(at, '/');
 
-    path.push(prop);
-
-    let sec = await user.get('trust').get(pair.pub).path(path).then();
-    if (!sec) { console.error('error getting decryption key'); return; }
-
-    const enc = await gun.get(prop).then();
-    if (!enc) { console.error(`error getting '${ prop }'`); return; }
-
-    const mix = await SEA.secret(await user.get('epub').then(), pair);
-
-    sec = await SEA.decrypt(sec, mix);
-    return SEA.decrypt(enc, sec);
+    if (pathNode) { pathNode.set(obj, cb);                 }
+    else          { throw new Error(`No such path ${at}`); }
 };
 
 /**
@@ -153,3 +83,15 @@ export const GunPeer = fileName => new Gun({
 });
 
 export { Gun, SEA };
+
+// example usage:
+
+/* const gun = GunPeer('user');
+
+gun.get('~@civiclink').once(async data => {
+
+    const pub = Object.keys(data).find(key => key.startsWith('~')).slice(1);
+    const civiclink = gun.user(pub);
+
+    console.log(await civiclink.get('name').then());
+}); */

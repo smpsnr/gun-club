@@ -9,7 +9,7 @@ const state = {
 
 const actions = {
 
-    [REGISTER]: ({ commit, dispatch }, { alias, password }) => {
+    [REGISTER]: ({ dispatch }, { alias, password }) => {
         try {
             user.register(alias, password, ack => {
                 console.log('created user', ack);
@@ -19,7 +19,7 @@ const actions = {
         } catch(error) { console.error(error); }
     },
 
-    [LOGIN]: ({ commit, dispatch }, { alias, password }) => {
+    [LOGIN]: ({ commit }, { alias, password }) => {
         try {
             user.login(alias, password, ack => {
                 console.log('logged in', ack);
@@ -29,15 +29,11 @@ const actions = {
         } catch(error) { console.error(error); }
     },
 
-    [ADD_CHANNEL]: ({ commit, dispatch }, name) => {
-        user.addChannel(name);
-    }
+    [ADD_CHANNEL]: (_, name) => user.addChannel(name)
 };
 
 const mutations = {
-    addChannel: (state, name) => {
-        state.channels.push(name);
-    }
+    addChannel: (state, name) => state.channels.push(name)
 };
 
 export default { state, actions, mutations };

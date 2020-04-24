@@ -12,7 +12,7 @@ import 'gun/lib/load';
 /** @typedef { import('gun/types/chain').IGunChainReference } GunRef */
 const SEA = Gun.SEA;
 
-const port = 8081;
+const port = process.env.PORT || 8765;
 const peer = `${ location.protocol }//${ location.hostname }:${ port }/gun`;
 
 Gun.prototype.valMapEnd = function(each, ended) {

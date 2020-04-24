@@ -1,6 +1,8 @@
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const { VueLoaderPlugin }    = require('vue-loader');
 
+const DotenvWebpackPlugin    = require('dotenv-webpack');
+
 const HtmlWebpackPlugin      = require('html-webpack-plugin');
 const InlineSourcePlugin     = require('html-webpack-inline-source-plugin');
 
@@ -71,6 +73,7 @@ const config = (local, sw, mode) => ({
         ...(local ? [ // dev server only
             new CleanWebpackPlugin() ] : []),
 
+        new DotenvWebpackPlugin(),
         new VueLoaderPlugin(),
 
         new HtmlWebpackPlugin({

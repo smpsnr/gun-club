@@ -12,9 +12,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 import dotenv from 'dotenv';
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
-//TODO: replace these with config file
-const host = '0.0.0.0';
-const port = 8081;
+const host = process.env.HOST || '0.0.0.0';
+const port = process.env.PORT || 8765;
 
 console.info('\n', '\x1b[33m',
              `Starting relay peer on port ${ port } with /gun...`, '\x1b[0m\n');

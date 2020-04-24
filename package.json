@@ -3,7 +3,7 @@
     "version": "0.1.0",
     "private": true,
     "scripts": {
-        "dev-gun": "cd server && rm -rf data && node gun-server.js --mode=development",
+        "dev-gun": "cd server && rm -rf radata && node gun-server.js --mode=development",
         "gun-node": "cd server && node gun-server.js --mode=production",
         "dev-server": "webpack-dev-server --hot --progress --display-error-details --env=local --mode=development",
         "dev-server-ios": "npm run dev-server -- --host='0.0.0.0' --allowed-hosts='.local'",
@@ -33,7 +33,7 @@
     "dependencies": {
         "core-js": "^3.6.4",
         "dotenv": "^8.2.0",
-        "gun": "^0.2020.401",
+        "gun": "amark/gun#ff99a46",
         "gun-api": "file:server",
         "minimist": "^1.2.5",
         "vue": "^2.6.11",

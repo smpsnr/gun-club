@@ -20,7 +20,6 @@ console.info('\n', '\x1b[33m',
              `Starting relay peer on port ${ port } with /gun...`, '\x1b[0m\n');
 
 const app = express();
-const dataPath = path.join(__dirname, 'data');
 
 app.use(Gun.serve);
 app.use(express.static(__dirname));
@@ -36,7 +35,7 @@ if (argv.mode === 'production') {
 
 } else { server = app.listen(port, host); }
 
-const gun = new Gun({ file: dataPath, web: server, axe: false });
+const gun = new Gun({ web: server, axe: false });
 
 if (argv.mode === 'development') {
     Gun.SEA.throw = true;

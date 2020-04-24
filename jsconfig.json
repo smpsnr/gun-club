@@ -2,6 +2,11 @@
     "compilerOptions": {
         "baseUrl": ".",
 
+        "paths": {
+            "api/*"  : [ "src/api/*"   ],
+            "store/*": [ "src/store/*" ],
+        },
+
         "checkJs"                     : true,
         "noImplicitThis"              : true,
         "allowSyntheticDefaultImports": true,

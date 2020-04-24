@@ -1,4 +1,5 @@
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const { VueLoaderPlugin }    = require('vue-loader');
 
 const HtmlWebpackPlugin      = require('html-webpack-plugin');
 const InlineSourcePlugin     = require('html-webpack-inline-source-plugin');
@@ -39,11 +40,18 @@ const config = (local, sw, mode) => ({
     },
 
     resolve: {
-        extensions: [ '.js' ]
+        extensions: [ '.js', '.vue' ],
+        alias     : {
+            'vue$': 'vue/dist/vue.esm.js',
+            'api' : srcPath('api'), 'store': srcPath('store'),
+        },
     },
 
     module : {
         rules: [{
+            test   : /\.vue$/, loader: 'vue-loader',
+
+        }, {
             test   : /\.js$/,  loader: 'babel-loader',
             include: [ srcPath() ],
 
@@ -53,7 +61,7 @@ const config = (local, sw, mode) => ({
 
         }, {
             test:  /\.(css|scss)$/,
-            use : [ 'css-loader' ]
+            use : [ 'vue-style-loader', 'css-loader' ]
         }],
 
         noParse: /node_modules\/gun\/(gun|sea)\.js$/ // see https://git.io/Jv2K2
@@ -62,6 +70,8 @@ const config = (local, sw, mode) => ({
     plugins: [
         ...(local ? [ // dev server only
             new CleanWebpackPlugin() ] : []),
+
+        new VueLoaderPlugin(),
 
         new HtmlWebpackPlugin({
             template    : srcPath('index.html'),

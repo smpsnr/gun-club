@@ -4,9 +4,9 @@
         "node"   : true,
         "browser": true
     },
-    "extends": [ "eslint:recommended" ],
+    "extends": [ "eslint:recommended", "plugin:vue/recommended" ],
 
-    "parser"       : "babel-eslint",
+    "parser"       : "vue-eslint-parser",
     "parserOptions": {
 
         "parser"     : "babel-eslint",
@@ -32,6 +32,17 @@
         }],
 
         "no-console"    : "off",
-        "no-fallthrough": "off"
+        "no-fallthrough": "off",
+
+        "vue/html-indent"                           : [ "error", 4, { "baseIndent": 0 }],
+        "vue/html-closing-bracket-newline"          : [ "error", { "singleline": "never", "multiline": "never" }],
+
+        "vue/multiline-html-element-content-newline": [ "warn", { "allowEmptyLines" : true }],
+
+        "vue/no-multi-spaces"                        : "off",
+        "vue/html-self-closing"                      : "off",
+        "vue/max-attributes-per-line"                : "off",
+        "vue/singleline-html-element-content-newline": "off",
+        "vue/attributes-order"                       : "off"
     }
 }

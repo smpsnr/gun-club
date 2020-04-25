@@ -15,6 +15,9 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') });
 const host = process.env.HOST || '0.0.0.0';
 const port = process.env.PORT || 8765;
 
+const axe       = process.env.AXE       || true;
+const multicast = process.env.MULTICAST || true;
+
 console.info('\n', '\x1b[33m',
              `Starting relay peer on port ${ port } with /gun...`, '\x1b[0m\n');
 
@@ -34,7 +37,10 @@ if (argv.mode === 'production') {
 
 } else { server = app.listen(port, host); }
 
-const gun = new Gun({ web: server, axe: false });
+const gun = new Gun({
+    web: server, axe: axe,
+    multicast: multicast ? { port: port } : false
+});
 
 if (argv.mode === 'development') {
     Gun.SEA.throw = true;

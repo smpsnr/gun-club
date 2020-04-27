@@ -48,8 +48,7 @@ const addChannel = name => SEA.pair(null).then(pair => {
         //! auth(pair) neglects some setup performed by create(alias, pass)
         // see act g of User.prototype.create in sea.js
 
-        const root = group.back(-1);
-        root.get(`~${ pair.pub }`).put({ epub: pair.epub });
+        group.back(-1).get(`~${ pair.pub }`).put({ epub: pair.epub });
 
         // store encrypted channel name in channel's space
         // grant user access to channel name
@@ -61,7 +60,6 @@ const addChannel = name => SEA.pair(null).then(pair => {
         console.log('channel', group);
 
         group.leave(); //indexedDB.deleteDatabase('group');
-        //root.on('bye', 'http://localhost:8765/gun');
 
         // store encrypted channel pubkey in user's space
 
@@ -70,4 +68,12 @@ const addChannel = name => SEA.pair(null).then(pair => {
     });
 });
 
-export default { login, register, channels, addChannel };
+const reconnect = () => {
+    peers.user .on('bye', 'http://localhost:8765/gun');
+    peers.group.on('bye', 'http://localhost:8765/gun');
+
+    //peers.user .opt('http://localhost:8765/gun');
+    //peers.group.opt('http://localhost:8765/gun');
+};
+
+export default { login, register, channels, addChannel, reconnect };

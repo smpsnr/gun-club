@@ -1,4 +1,4 @@
-import { REGISTER, LOGIN, ADD_CHANNEL
+import { REGISTER, LOGIN, ADD_CHANNEL, RECONNECT
 } from 'store/actions/user';
 
 import user from 'api/gun-adapter';
@@ -29,7 +29,9 @@ const actions = {
         } catch(error) { console.error(error); }
     },
 
-    [ADD_CHANNEL]: (_, name) => user.addChannel(name)
+    [ADD_CHANNEL]: (_, name) => user.addChannel(name),
+
+    [RECONNECT]: () => user.reconnect()
 };
 
 const mutations = {

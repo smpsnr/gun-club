@@ -24,6 +24,9 @@
         <input id="new-channel" value="Create channel"
                type="button" @click="addChannel()">
 
+        <input id="reconnect"   value="Reconnect"
+               type="button" @click="reconnect()">
+
         <h4> Channels </h4>
 
         <table>
@@ -40,7 +43,7 @@
 
 <script>
 import { mapState } from 'vuex';
-import { REGISTER, LOGIN, ADD_CHANNEL } from 'store/actions/user';
+import { REGISTER, LOGIN, ADD_CHANNEL, RECONNECT } from 'store/actions/user';
 
 export default {
     name: 'App',
@@ -63,6 +66,10 @@ export default {
 
         addChannel() {
             this.$store.dispatch(ADD_CHANNEL, this.channelName);
+        },
+
+        reconnect() {
+            this.$store.dispatch(RECONNECT);
         }
     }
 };

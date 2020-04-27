@@ -30,8 +30,8 @@
         <h4> Channels </h4>
 
         <table>
-            <tr v-for="(channel, index) in channels" :key="index">
-                <td> {{ channel }} </td>
+            <tr v-for="channel in channels" :key="channel.id">
+                <td> {{ channel.name }} </td>
             </tr>
 
         </table>
@@ -42,16 +42,17 @@
 </template>
 
 <script>
-import { mapState } from 'vuex';
-import { REGISTER, LOGIN, ADD_CHANNEL, RECONNECT } from 'store/actions/user';
+import { REGISTER, LOGIN, ADD_CHANNEL, RECONNECT
+}              from 'store/actions/user';
+import Channel from './model/Channel';
 
 export default {
     name: 'App',
     data: () => ({username: '', password: '', channelName: '' }),
 
-    computed: mapState({
-        channels: state => state.user.channels
-    }),
+    computed: {
+        channels() { return Channel.query().orderBy('id', 'desc').get(); }
+    },
 
     methods: {
         register() {

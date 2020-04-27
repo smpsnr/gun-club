@@ -1,7 +1,8 @@
 import { REGISTER, LOGIN, ADD_CHANNEL, RECONNECT
 } from 'store/actions/user';
 
-import user from 'api/gun-adapter';
+import user    from 'api/gun-adapter';
+import Channel from 'model/Channel';
 
 const state = {
     channels: []
@@ -19,11 +20,11 @@ const actions = {
         } catch(error) { console.error(error); }
     },
 
-    [LOGIN]: ({ commit }, { alias, password }) => {
+    [LOGIN]: (_, { alias, password }) => {
         try {
             user.login(alias, password, ack => {
                 console.log('logged in', ack);
-                user.channels(name => commit('addChannel', name));
+                user.channels(name => Channel.insert({ data: { name: name } }));
             });
 
         } catch(error) { console.error(error); }

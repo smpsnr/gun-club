@@ -3,7 +3,7 @@
         "baseUrl": ".",
 
         "paths": {
-            "api/*"  : [ "src/api/*"   ],
+            "api/*"  : [ "src/api/*"   ], "model/*": [ "src/model/*" ],
             "store/*": [ "src/store/*" ],
         },
 

@@ -44,8 +44,10 @@ const config = (local, sw, mode) => ({
     resolve: {
         extensions: [ '.js', '.vue' ],
         alias     : {
-            'vue$': 'vue/dist/vue.esm.js',
-            'api' : srcPath('api'), 'store': srcPath('store'),
+            'vue$' : 'vue/dist/vue.esm.js',
+
+            'api'  : srcPath('api'), 'model': srcPath('model'),
+            'store': srcPath('store'),
         },
     },
 
@@ -57,9 +59,12 @@ const config = (local, sw, mode) => ({
             test   : /\.js$/,  loader: 'babel-loader',
             include: [ srcPath() ],
 
-            options: { presets: [[ '@babel/preset-env', {
-                modules: false, useBuiltIns: 'usage', corejs: 'core-js@3'
-            } ]] }
+            options: {
+                presets: [[ '@babel/preset-env', {
+                    modules: false, useBuiltIns: 'usage', corejs: 'core-js@3'
+                } ]],
+                plugins: [[ '@babel/plugin-proposal-class-properties' ]]
+            }
 
         }, {
             test:  /\.(css|scss)$/,

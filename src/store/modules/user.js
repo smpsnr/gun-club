@@ -1,18 +1,18 @@
-import { REGISTER, LOGIN, ADD_CHANNEL, RECONNECT
+import { REGISTER, LOGIN, LOGOUT, ADD_CHANNEL, RECONNECT
 } from 'store/actions/user';
 
-import user from 'api/gun-adapter';
+import client from 'api/gun-adapter';
 
 const state = {
-    channels: []
+    channels: [], principal: null
 };
 
 const actions = {
 
     [REGISTER]: ({ dispatch }, { alias, password }) => {
         try {
-            user.register(alias, password, ack => {
-                console.log('created user', ack);
+            client.register(alias, password, user => {
+                console.log('created user', user);
                 dispatch(LOGIN, { alias, password });
             });
 
@@ -21,21 +21,32 @@ const actions = {
 
     [LOGIN]: ({ commit }, { alias, password }) => {
         try {
-            user.login(alias, password, ack => {
-                console.log('logged in', ack);
-                user.channels(name => commit('addChannel', name));
+            client.login(alias, password, user => {
+                console.log('logged in', user);
+
+                commit('setPrincipal', user);
+                client.channels(name => commit('addChannel', name));
             });
 
         } catch(error) { console.error(error); }
     },
 
-    [ADD_CHANNEL]: (_, name) => user.addChannel(name),
+    [LOGOUT]: ({ commit }) => {
+        client.logout(); commit('clearPrincipal');
+    },
 
-    [RECONNECT]: () => user.reconnect()
+    [ADD_CHANNEL]: (_, name) => client.addChannel(name),
+
+    [RECONNECT]: () => client.reconnect()
 };
 
 const mutations = {
-    addChannel: (state, name) => state.channels.push(name)
+    setPrincipal: (state, user) => state.principal = user,
+    addChannel  : (state, name) => state.channels.push(name),
+
+    clearPrincipal: state => {
+        state.principal = null; state.channels = [];
+    }
 };
 
 export default { state, actions, mutations };

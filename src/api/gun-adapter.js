@@ -9,12 +9,14 @@ const user  = peers.user. user();
 const group = peers.group.user();
 
 const login = (alias, password, cb) => user.auth(alias, password, ack => {
-    if (ack.err) { user.leave(); throw new Error(ack.err); } cb(ack);
+    if (ack.err) { user.leave(); throw new Error(ack.err); } cb(user.is);
 });
 
 const register = (alias, password, cb) => user.create(alias, password, ack => {
-    if (ack.err) { user.leave(); throw new Error(ack.err); } cb(ack);
+    if (ack.err) { user.leave(); throw new Error(ack.err); } cb(user.is);
 });
+
+const logout = () => user.leave();
 
 const channels = cb => {
 
@@ -76,4 +78,4 @@ const reconnect = () => {
     //peers.group.opt('http://localhost:8765/gun');
 };
 
-export default { login, register, channels, addChannel, reconnect };
+export default { login, register, logout, channels, addChannel, reconnect };

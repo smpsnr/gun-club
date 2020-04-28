@@ -11,17 +11,17 @@ const actions = {
 
     [REGISTER]: ({ dispatch }, { alias, password }) => {
         try {
-            client.register(alias, password, user => {
-                console.log('created user', user);
-                dispatch(LOGIN, { alias, password });
+            client.register({ alias, password }, id => {
+                console.log('created user', id);
+                dispatch(LOGIN, { alias, password, id });
             });
 
         } catch(error) { console.error(error); }
     },
 
-    [LOGIN]: ({ commit }, { alias, password }) => {
+    [LOGIN]: ({ commit }, { alias, password, id='' }) => {
         try {
-            client.login(alias, password, user => {
+            client.login({ alias, password, id }, user => {
                 console.log('logged in', user);
 
                 commit('setPrincipal', user);

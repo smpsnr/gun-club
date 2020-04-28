@@ -1,4 +1,5 @@
-import { GunPeer, SEA } from './gun-peer';
+import { GunPeer, SEA } from 'api/gun-peer';
+import * as utils       from 'api/gun-utils';
 
 const peers = {
     user : GunPeer('user'),
@@ -8,13 +9,40 @@ const peers = {
 const user  = peers.user. user();
 const group = peers.group.user();
 
-const login = (alias, password, cb) => user.auth(alias, password, ack => {
-    if (ack.err) { user.leave(); throw new Error(ack.err); } cb(user.is);
-});
+const login = ({ alias, password, id='' }, cb) =>
+    user.auth(alias, password, async ack => {
 
-const register = (alias, password, cb) => user.create(alias, password, ack => {
-    if (ack.err) { user.leave(); throw new Error(ack.err); } cb(user.is);
-});
+        if (ack.err) { throw new Error(ack.err); }
+        try { // retrieve metadata
+
+            const uuid = await user.getSecret('uuid', user._.sea);
+            if (!uuid) { throw new Error('error getting uuid'); }
+
+            if (id && id !== uuid) { throw new Error('mismatched id'); }
+            cb({ uuid, ...user.is }); // callback
+
+        } catch(error) { user.leave(); throw(error); }
+    });
+
+const register = ({ alias, password }, cb) =>
+    user.create(alias, password, ack => {
+
+        if (ack.err) { throw new Error(ack.err); }
+        try { // test authentication, set metadata
+
+            user.auth(alias, password, async ack => {
+                if (ack.err) { throw new Error(ack.err); }
+
+                const uuid = await utils.hash(user.is);
+                if (!uuid) { throw new Error('error generating uuid'); }
+
+                user.get('uuid').secret(uuid, () => {
+                    user.leave(); cb(uuid); // callback
+                });
+            });
+
+        } catch(error) { user.delete(alias, password); throw(error); }
+    });
 
 const logout = () => user.leave();
 
@@ -37,6 +65,9 @@ const channels = cb => {
         console.log(channelName); cb(channelName);
     });
 };
+
+// this creates a channel and gives current user READ access
+// spin the READ stuff into new function & have this give current user ADMIN access
 
 const addChannel = name => SEA.pair(null).then(pair => {
 
@@ -65,7 +96,7 @@ const addChannel = name => SEA.pair(null).then(pair => {
 
         // store encrypted channel pubkey in user's space
 
-        const hash = await SEA.work(pair.pub, null);
+        const hash = await utils.hash(pair.pub);
         user.get('channels').get(hash).secret(pair.pub);
     });
 });

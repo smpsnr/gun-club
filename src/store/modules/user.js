@@ -25,7 +25,7 @@ const actions = {
                 console.log('logged in', user);
 
                 commit('setPrincipal', user);
-                client.channels(name => commit('addChannel', name));
+                client.channels(channel => commit('addChannel', channel));
             });
 
         } catch(error) { console.error(error); }
@@ -41,8 +41,8 @@ const actions = {
 };
 
 const mutations = {
-    setPrincipal: (state, user) => state.principal = user,
-    addChannel  : (state, name) => state.channels.push(name),
+    setPrincipal: (state, user)    => state.principal = user,
+    addChannel  : (state, channel) => state.channels.push(channel),
 
     clearPrincipal: state => {
         state.principal = null; state.channels = [];

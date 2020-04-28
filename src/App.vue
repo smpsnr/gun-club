@@ -31,14 +31,7 @@
             <tr> <b> Pub key </b> <td> {{ principal.pub   }} </td> </tr>
         </table>
 
-        <h4> Channels </h4>
-
-        <table>
-            <tr v-for="(channel, index) in channels" :key="index">
-                <td> {{ channel }} </td>
-            </tr>
-
-        </table>
+        <h3> Channels </h3>
 
         <form>
             <input id="new-channel-name" placeholder="Channel name"
@@ -47,7 +40,16 @@
             <input id="new-channel" value="Create channel"
                    type="button" @click="addChannel()">
 
-        </form>
+        </form> <br>
+
+        <table>
+            <tr> <th> Name </th> <th> Permission </th> </tr>
+            <tr v-for="(channel, index) in channels" :key="index">
+                <td> {{ channel.name }} </td>
+                <td> {{ channel.permission }} </td>
+            </tr>
+
+        </table>
 
     </section>
 

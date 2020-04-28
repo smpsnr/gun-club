@@ -9,17 +9,19 @@ const peers = {
 const user  = peers.user. user();
 const group = peers.group.user();
 
+let principal = {};
+
 const login = ({ alias, password, id='' }, cb) =>
     user.auth(alias, password, async ack => {
 
         if (ack.err) { throw new Error(ack.err); }
         try { // retrieve metadata
 
-            const uuid = await user.getSecret('uuid', user._.sea);
+            const uuid = await user.getOwnSecret('uuid');
             if (!uuid) { throw new Error('error getting uuid'); }
 
             if (id && id !== uuid) { throw new Error('mismatched id'); }
-            cb({ uuid, ...user.is }); // callback
+            principal = { uuid, ...user.is }; cb(principal); // callback
 
         } catch(error) { user.leave(); throw(error); }
     });
@@ -54,15 +56,20 @@ const channels = cb => {
     channels.map().once(async (val, key) => {
         console.log(key, val);
 
-        const channelPub = await channels.getSecret(key, pair);
+        const channelPub = await channels.getOwnSecret(key);
         if (!channelPub) { return; } console.log('channel pub', channelPub);
 
         const channel = peers.group.user(channelPub);
 
-        console.log('awaiting get secret');
-        const channelName = await channel.getSecret('name', pair);
+        console.log('awaiting get name');
+        const name = await channel.getSecret('name', pair);
 
-        console.log(channelName); cb(channelName);
+        console.log('awaiting get permission');
+
+        const permission =
+            await channel.get('permissions').getSecret(principal.uuid, pair);
+
+        console.log(name, permission); cb({ name, permission });
     });
 };
 
@@ -87,7 +94,10 @@ const addChannel = name => SEA.pair(null).then(pair => {
         // grant user access to channel name
 
         await group.get('name').secret(name).then();
-        await group.get('name').grant(user).then();
+        await group.get('name').grant(user) .then();
+
+        await group.get('permissions').get(principal.uuid).secret('a').then();
+        await group.get('permissions').get(principal.uuid).grant(user).then();
 
         console.log('user', user);
         console.log('channel', group);

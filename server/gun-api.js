@@ -72,7 +72,7 @@ SEA.Gun.User.prototype.secret = async function(data, callback) {
  * Get and decrypt data from authenticated user
  * @param { String } prop - property to get
  */
-SEA.Gun.User.prototype.getSecret = async function(prop) {
+SEA.Gun.User.prototype.getOwnSecret = async function(prop) {
     const gun  = this;       const user = gun.back(-1).user();
     const pair = user._.sea; const path = gun.getPath();
 

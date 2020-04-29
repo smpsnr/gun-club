@@ -27,8 +27,18 @@
         <h2> Profile </h2>
 
         <table>
-            <tr> <b> Alias   </b> <td> {{ principal.alias }} </td> </tr>
-            <tr> <b> Pub key </b> <td> {{ principal.pub   }} </td> </tr>
+            <tr> <b> Alias </b> <td> {{ principal.alias }} </td> </tr>
+            <tr> <b> UUID  </b> <td> {{ principal.uuid }}  </td> </tr>
+            <tr>
+                <b> Pub key </b>
+                <td>
+                    <input id="principal-pub" :value="principal.pub"
+                           type="text" readonly="true" class="key">
+
+                    <input value="Copy" type="button"
+                           @click="copy('#principal-pub')">
+                </td>
+            </tr>
         </table>
 
         <h3> Channels </h3>
@@ -40,18 +50,34 @@
             <input id="new-channel" value="Create channel"
                    type="button" @click="addChannel()">
 
+        </form>
+
+        <form>
+            <input id="join-channel-pub" placeholder="Channel pub"
+                   type="text" v-model="joinPub">
+
+            <input id="join-channel" value="Join channel"
+                   type="button" @click="joinChannel()">
+
         </form> <br>
 
         <table>
-            <tr> <th> Name </th> <th> Permission </th> </tr>
+            <tr> <th> Name </th> <th> Perm </th> <th> Pub </th> <th> Share </th> </tr>
             <tr v-for="(channel, index) in channels" :key="index">
                 <td> {{ channel.name }} </td>
                 <td> {{ channel.permission }} </td>
                 <td>
+                    <input :id="`channel-${ index }-pub`" :value="channel.pub"
+                           type="text" readonly="true" class="key">
+
+                    <input value="Copy" type="button"
+                           @click="copy(`#channel-${ index }-pub`)">
+                </td>
+                <td>
                     <input id="share-channel-pub" placeholder="User pub"
                            type="text" v-model="sharePub">
 
-                    <input id="share-channel" value="Share channel"
+                    <input id="share-channel" value="Share"
                            type="button" @click="shareChannel(channel.pub)">
                 </td>
             </tr>
@@ -75,12 +101,16 @@
 <script>
 import { mapState } from 'vuex';
 
-import { REGISTER, LOGIN, LOGOUT, ADD_CHANNEL, SHARE_CHANNEL, RECONNECT
+import { REGISTER, LOGIN, LOGOUT, RECONNECT,
+    ADD_CHANNEL, SHARE_CHANNEL, JOIN_CHANNEL
 } from 'store/actions/user';
 
 export default {
     name: 'App',
-    data: () => ({ username: '', password: '', channelName: '', sharePub: '' }),
+    data: () => ({
+        username: '', password: '',
+        channelName: '', sharePub: '', joinPub: ''
+    }),
 
     computed: mapState({
         channels : state => state.user.channels,
@@ -107,12 +137,21 @@ export default {
             this.$store.dispatch(SHARE_CHANNEL, details);
         },
 
-        reconnect()  { this.$store.dispatch(RECONNECT); }
+        joinChannel() { this.$store.dispatch(JOIN_CHANNEL, this.joinPub); },
+
+        reconnect()  { this.$store.dispatch(RECONNECT); },
+
+        copy(id) {
+            document.querySelector(id).select();
+            document.execCommand('copy');
+        }
     }
 };
 
 </script>
 
 <style scoped>
+    .key   { overflow: hidden; text-overflow: ellipsis; }
+    th, td { text-align: left; padding-right: 1ch; }
     footer { position: fixed; bottom: 0; }
 </style>

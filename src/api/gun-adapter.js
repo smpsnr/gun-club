@@ -135,7 +135,10 @@ const authChannel = (pub, func) => lock.acquire('group', async done => {
     channel.auth(pair, null, async ack => {
         if (ack.err) { done(new Error(ack.err)); }
 
+        console.log('doing function as channel...');
         await func(channel); // do some authenticated operations
+
+        console.log('finished channel function');
         channel.leave(); done();
     });
 });
@@ -148,14 +151,47 @@ const shareChannel = (channelPub, userPub) => {
     const to = peers.user.user(userPub);
     if (!to) { throw new Error('no such user'); }
 
-    console.log(to);
-
+    console.log('sharing...');
     authChannel(channelPub, async channel => {
-        await channel.get('pair').grant(to).then();
 
-        // await channel.get('permissions').get(principal.uuid).secret('a').then();
-        //await channel.get('permissions').get(principal.uuid).grant(user).then();
+        await channel.get('pair').grant(to).then();
+        await channel.get('name').grant(to).then();
+
+        const uuid = await utils.hash({
+            pub  : userPub,
+            epub : await to.get('epub') .then(),
+            alias: await to.get('alias').then()
+        });
+
+        console.log('setting perm');
+        await channel.get('permissions').get(uuid).secret('a').then();
+
+        console.log('granting perm');
+        await channel.get('permissions').get(uuid).grant(to).then();
+
+        console.log('shared');
     });
+};
+
+/**
+ * Join a channel that has been shared with current user
+ */
+const joinChannel = async pub => {
+
+    const pair = user._.sea;
+    const channel = peers.group.user(pub);
+
+    console.log('awaiting get name');
+    const name = await channel.getSecret('name', pair);
+
+    console.log('awaiting get permission');
+    const permission =
+        await channel.get('permissions').getSecret(principal.uuid, pair);
+
+    console.log(`joining '${ name }' with permission '${ permission }'`);
+
+    const hash = await utils.hash(pub);
+    user.get('channels').get(hash).secret(pub);
 };
 
 const reconnect = () => {
@@ -166,4 +202,7 @@ const reconnect = () => {
     //peers.group.opt('http://localhost:8765/gun');
 };
 
-export default { login, register, logout, channels, addChannel, shareChannel, reconnect };
+export default {
+    login, register, logout, reconnect,
+    channels, addChannel, shareChannel, joinChannel
+};

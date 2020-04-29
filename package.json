@@ -11,8 +11,8 @@
         "build": "eslint src --ext .vue --quiet && webpack --progress --display-error-details --env=sw --mode=production"
     },
     "devDependencies": {
-        "@babel/core": "^7.8.4",
-        "@babel/preset-env": "^7.9.5",
+        "@babel/core": "^7.9.6",
+        "@babel/preset-env": "^7.9.6",
         "babel-eslint": "^10.0.3",
         "babel-loader": "^8.0.6",
         "clean-webpack-plugin": "^3.0.0",
@@ -39,6 +39,6 @@
         "gun-api": "file:server",
         "minimist": "^1.2.5",
         "vue": "^2.6.11",
-        "vuex": "^3.2.0"
+        "vuex": "^3.3.0"
     }
 }

@@ -5,21 +5,17 @@
         <h2> Login </h2>
 
         <form v-if="!principal">
-            <input id="username" v-model="username" placeholder="Username"
+            <input v-model="credentials.alias" placeholder="Username"
                    type="text" autocomplete="username">
 
-            <input id="password" v-model="password" placeholder="Password"
+            <input v-model="credentials.password" placeholder="Password"
                    type="password" autocomplete="current-password">
 
-            <input id="login" value="Login"
-                   type="button" @click="login()">
-
-            <input id="register" value="Register"
-                   type="button" @click="register()">
+            <input value="Login"    type="button" @click="login()">
+            <input value="Register" type="button" @click="register()">
         </form>
 
-        <input v-else id="logout" value="Log out"
-               type="button" @click="logout()">
+        <input v-else value="Log out" type="button" @click="logout()">
 
     </section>
 
@@ -44,27 +40,22 @@
         <h3> Channels </h3>
 
         <form>
-            <input id="new-channel-name" placeholder="Channel name"
-                   type="text" v-model="channelName">
-
-            <input id="new-channel" value="Create channel"
-                   type="button" @click="addChannel()">
-
+            <input v-model="newChannelName" placeholder="Name" type="text">
+            <input value="Create channel" type="button" @click="addChannel()">
         </form>
 
         <form>
-            <input id="join-channel-pub" placeholder="Channel pub"
-                   type="text" v-model="joinPub">
-
-            <input id="join-channel" value="Join channel"
-                   type="button" @click="joinChannel()">
-
+            <input v-model="joinChannelPub" placeholder="Pub" type="text">
+            <input value="Join channel" type="button" @click="joinChannel()">
         </form> <br>
 
         <table>
-            <tr> <th> Name </th> <th> Perm </th> <th> Pub </th> <th> Share </th> </tr>
-            <tr v-for="(channel, index) in channels" :key="index">
-                <td> {{ channel.name }} </td>
+            <tr>
+                <th> Name </th> <th> Perm </th> <th> Pub </th> <th> Share </th>
+            </tr>
+
+            <tr v-for="(channel, index) in channels" :key="channel.pub">
+                <td> {{ channel.name }}       </td>
                 <td> {{ channel.permission }} </td>
                 <td>
                     <input :id="`channel-${ index }-pub`" :value="channel.pub"
@@ -74,14 +65,12 @@
                            @click="copy(`#channel-${ index }-pub`)">
                 </td>
                 <td>
-                    <input id="share-channel-pub" placeholder="User pub"
-                           type="text" v-model="sharePub">
+                    <input v-model="sharePubs[index]" placeholder="Pub" type="text">
 
-                    <input id="share-channel" value="Share"
-                           type="button" @click="shareChannel(channel.pub)">
+                    <input value="Share" type="button"
+                           @click="shareChannel(index)">
                 </td>
             </tr>
-
         </table>
 
     </section>
@@ -89,9 +78,7 @@
     <footer>
         <h2>
             Debug
-            <input id="reconnect" value="Reconnect"
-                   type="button" @click="reconnect()">
-
+            <input value="Reconnect" type="button" @click="reconnect()">
         </h2>
     </footer>
 
@@ -107,9 +94,10 @@ import { REGISTER, LOGIN, LOGOUT, RECONNECT,
 
 export default {
     name: 'App',
+
     data: () => ({
-        username: '', password: '',
-        channelName: '', sharePub: '', joinPub: ''
+        credentials: { alias: '', password: '' },
+        newChannelName: '', joinChannelPub: '', sharePubs: []
     }),
 
     computed: mapState({
@@ -118,28 +106,27 @@ export default {
     }),
 
     methods: {
-        register() {
-            const credentials = { alias: this.username, password: this.password };
-            this.$store.dispatch(REGISTER, credentials);
+        register() { this.$store.dispatch(REGISTER, this.credentials); },
+        login()    { this.$store.dispatch(LOGIN,    this.credentials); },
+
+        logout()   { this.$store.dispatch(LOGOUT); },
+
+        addChannel() {
+            this.$store.dispatch(ADD_CHANNEL, this.newChannelName);
         },
 
-        login() {
-            const credentials = { alias: this.username, password: this.password };
-            this.$store.dispatch(LOGIN, credentials);
+        shareChannel(index) {
+            this.$store.dispatch(SHARE_CHANNEL, {
+                channelPub: this.channels[index].pub,
+                userPub   : this.sharePubs[index]
+            });
         },
 
-        logout()     { this.$store.dispatch(LOGOUT); },
-
-        addChannel() { this.$store.dispatch(ADD_CHANNEL, this.channelName); },
-
-        shareChannel(channelPub) {
-            const details = { channelPub: channelPub, userPub: this.sharePub };
-            this.$store.dispatch(SHARE_CHANNEL, details);
+        joinChannel() {
+            this.$store.dispatch(JOIN_CHANNEL, this.joinChannelPub);
         },
 
-        joinChannel() { this.$store.dispatch(JOIN_CHANNEL, this.joinPub); },
-
-        reconnect()  { this.$store.dispatch(RECONNECT); },
+        reconnect() { this.$store.dispatch(RECONNECT); },
 
         copy(id) {
             document.querySelector(id).select();

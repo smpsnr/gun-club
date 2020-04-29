@@ -10,7 +10,9 @@ import 'gun/lib/store'; import 'gun/lib/rindexed';
 import 'gun/lib/load';
 
 /** @typedef { import('gun/types/chain').IGunChainReference } GunRef */
+
 const SEA = Gun.SEA;
+if (process.env.MODE === 'development') { SEA.throw = true; }
 
 const port = process.env.PORT || 8765;
 const peer = `${ location.protocol }//${ location.hostname }:${ port }/gun`;

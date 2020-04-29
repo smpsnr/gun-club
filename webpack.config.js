@@ -73,6 +73,10 @@ const config = (local, sw, mode) => ({
         ...(local ? [ // dev server only
             new CleanWebpackPlugin() ] : []),
 
+        new webpack.DefinePlugin({
+            'process.env': { MODE: JSON.stringify(mode) }
+        }),
+
         new DotenvWebpackPlugin(),
         new VueLoaderPlugin(),
 

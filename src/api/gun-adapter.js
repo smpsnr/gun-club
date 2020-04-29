@@ -1,13 +1,15 @@
+import AsyncLock        from 'async-lock';
+
 import { GunPeer, SEA } from 'api/gun-peer';
 import * as utils       from 'api/gun-utils';
 
 const peers = {
     user : GunPeer('user'),
-    group: GunPeer('group')
+    group: GunPeer('group'),
 };
 
-const user  = peers.user. user();
-const group = peers.group.user();
+const user = peers.user.user();
+const lock = new AsyncLock();
 
 let principal = {};
 
@@ -56,10 +58,10 @@ const channels = cb => {
     channels.map().once(async (val, key) => {
         console.log(key, val);
 
-        const channelPub = await channels.getOwnSecret(key);
-        if (!channelPub) { return; } console.log('channel pub', channelPub);
+        const pub = await channels.getOwnSecret(key);
+        if (!pub) { return; } console.log('channel pub', pub);
 
-        const channel = peers.group.user(channelPub);
+        const channel = peers.group.user(pub);
 
         console.log('awaiting get name');
         const name = await channel.getSecret('name', pair);
@@ -69,47 +71,92 @@ const channels = cb => {
         const permission =
             await channel.get('permissions').getSecret(principal.uuid, pair);
 
-        console.log(name, permission); cb({ name, permission });
+        console.log(name, permission); cb({ name, permission, pub });
     });
 };
 
-// this creates a channel and gives current user READ access
-// spin the READ stuff into new function & have this give current user ADMIN access
+/**
+ * Create a new channel and give the current user admin access
+ */
+const addChannel = name => lock.acquire('group', async done => {
 
-const addChannel = name => SEA.pair(null).then(pair => {
+    const pair    = await SEA.pair(null).then();
+    const channel = peers.group.user();
 
-    group.auth(pair, null, async () => {
+    channel.auth(pair, null, async ack => {
+        if (ack.err) { done(new Error(ack.err)); }
 
-        // creating user with auth(pair) initializes alias to pair
-        //? seems not to persist - otherwise, would leak private keys
-
-        console.log(JSON.stringify(group.is.alias));
+        //? creating user with auth(pair) initializes alias to pair
+        // does this leak keys? see console.log(JSON.stringify(group.is.alias))
 
         //! auth(pair) neglects some setup performed by create(alias, pass)
         // see act g of User.prototype.create in sea.js
 
-        group.back(-1).get(`~${ pair.pub }`).put({ epub: pair.epub });
+        channel.back(-1).get(`~${ pair.pub }`).put({ epub: pair.epub });
 
         // store encrypted channel name in channel's space
         // grant user access to channel name
 
-        await group.get('name').secret(name).then();
-        await group.get('name').grant(user) .then();
+        await channel.get('pair').secret(pair).then();
+        await channel.get('pair').grant(user) .then();
 
-        await group.get('permissions').get(principal.uuid).secret('a').then();
-        await group.get('permissions').get(principal.uuid).grant(user).then();
+        await channel.get('name').secret(name).then();
+        await channel.get('name').grant(user) .then();
+
+        await channel.get('permissions').get(principal.uuid).secret('a').then();
+        await channel.get('permissions').get(principal.uuid).grant(user).then();
 
         console.log('user', user);
-        console.log('channel', group);
+        console.log('channel', channel);
 
-        group.leave(); //indexedDB.deleteDatabase('group');
+        channel.leave(); //indexedDB.deleteDatabase('group');
 
         // store encrypted channel pubkey in user's space
 
         const hash = await utils.hash(pair.pub);
-        user.get('channels').get(hash).secret(pair.pub);
+        user.get('channels').get(hash).secret(pair.pub); done();
     });
 });
+
+/**
+ * Authenticate a channel over which you have admin access,
+ * then execute func(channel)
+ */
+const authChannel = (pub, func) => lock.acquire('group', async done => {
+
+    let channel = peers.group.user(pub);
+    if (!channel) { done(new Error('no such channel')); }
+
+    const pair = await channel.getSecret('pair', user._.sea);
+    if (!pair)    { done(new Error('error getting channel keys')); }
+
+    channel = channel.user();
+
+    channel.auth(pair, null, async ack => {
+        if (ack.err) { done(new Error(ack.err)); }
+
+        await func(channel); // do some authenticated operations
+        channel.leave(); done();
+    });
+});
+
+/**
+ * Add a user to a channel over which you have admin access
+ */
+const shareChannel = (channelPub, userPub) => {
+
+    const to = peers.user.user(userPub);
+    if (!to) { throw new Error('no such user'); }
+
+    console.log(to);
+
+    authChannel(channelPub, async channel => {
+        await channel.get('pair').grant(to).then();
+
+        // await channel.get('permissions').get(principal.uuid).secret('a').then();
+        //await channel.get('permissions').get(principal.uuid).grant(user).then();
+    });
+};
 
 const reconnect = () => {
     peers.user .on('bye', 'http://localhost:8765/gun');
@@ -119,4 +166,4 @@ const reconnect = () => {
     //peers.group.opt('http://localhost:8765/gun');
 };
 
-export default { login, register, logout, channels, addChannel, reconnect };
+export default { login, register, logout, channels, addChannel, shareChannel, reconnect };

@@ -47,6 +47,13 @@
             <tr v-for="(channel, index) in channels" :key="index">
                 <td> {{ channel.name }} </td>
                 <td> {{ channel.permission }} </td>
+                <td>
+                    <input id="share-channel-pub" placeholder="User pub"
+                           type="text" v-model="sharePub">
+
+                    <input id="share-channel" value="Share channel"
+                           type="button" @click="shareChannel(channel.pub)">
+                </td>
             </tr>
 
         </table>
@@ -68,12 +75,12 @@
 <script>
 import { mapState } from 'vuex';
 
-import { REGISTER, LOGIN, LOGOUT, ADD_CHANNEL, RECONNECT
+import { REGISTER, LOGIN, LOGOUT, ADD_CHANNEL, SHARE_CHANNEL, RECONNECT
 } from 'store/actions/user';
 
 export default {
     name: 'App',
-    data: () => ({ username: '', password: '', channelName: '' }),
+    data: () => ({ username: '', password: '', channelName: '', sharePub: '' }),
 
     computed: mapState({
         channels : state => state.user.channels,
@@ -94,6 +101,11 @@ export default {
         logout()     { this.$store.dispatch(LOGOUT); },
 
         addChannel() { this.$store.dispatch(ADD_CHANNEL, this.channelName); },
+
+        shareChannel(channelPub) {
+            const details = { channelPub: channelPub, userPub: this.sharePub };
+            this.$store.dispatch(SHARE_CHANNEL, details);
+        },
 
         reconnect()  { this.$store.dispatch(RECONNECT); }
     }

@@ -1,4 +1,4 @@
-import { REGISTER, LOGIN, LOGOUT, ADD_CHANNEL, RECONNECT
+import { REGISTER, LOGIN, LOGOUT, ADD_CHANNEL, SHARE_CHANNEL, RECONNECT
 } from 'store/actions/user';
 
 import client from 'api/gun-adapter';
@@ -36,6 +36,9 @@ const actions = {
     },
 
     [ADD_CHANNEL]: (_, name) => client.addChannel(name),
+
+    [SHARE_CHANNEL]: (_, { channelPub, userPub }) =>
+        client.shareChannel(channelPub, userPub),
 
     [RECONNECT]: () => client.reconnect()
 };

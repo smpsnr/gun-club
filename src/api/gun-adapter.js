@@ -48,7 +48,7 @@ const register = ({ alias, password }, cb) =>
         } catch(error) { user.delete(alias, password); throw(error); }
     });
 
-const logout = () => user.leave();
+const logout = () => { user.leave(); reconnect(); };
 
 const channels = cb => {
 
@@ -170,6 +170,7 @@ const shareChannel = (channelPub, userPub) => {
         await channel.get('permissions').get(uuid).grant(to).then();
 
         console.log('shared');
+        //reconnect();
     });
 };
 

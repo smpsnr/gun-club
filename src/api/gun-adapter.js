@@ -55,8 +55,11 @@ const channels = cb => {
     const pair = user._.sea;
     const channels = user.get('channels');
 
+    let lastKey = '';
     channels.map().once(async (val, key) => {
-        console.log(key, val);
+
+        if (lastKey === key) { console.warn('ignoring duplicate'); return; }
+        lastKey = key;         console.info('loading channel', key);
 
         const pub = await channels.getOwnSecret(key);
         if (!pub) { return; } console.log('channel pub', pub);

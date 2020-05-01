@@ -4,8 +4,8 @@ import { GunPeer, SEA } from 'api/gun-peer';
 import * as utils       from 'api/gun-utils';
 
 const peers = {
-    user : GunPeer('user'),
-    group: GunPeer('group'),
+    user : GunPeer({ name: 'user',  useRTC: false }),
+    group: GunPeer({ name: 'group', useRTC: true }),
 };
 
 const user = peers.user.user();

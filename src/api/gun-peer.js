@@ -1,8 +1,5 @@
 import Gun from 'gun-api';
 
-// enable automatic peer signaling and discovery
-import 'gun/lib/webrtc';
-
 // enable RAD storage adapter backed by IndexedDB
 import 'gun/lib/radix'; import 'gun/lib/radisk';
 import 'gun/lib/store'; import 'gun/lib/rindexed';
@@ -16,6 +13,9 @@ if (process.env.MODE === 'development') { SEA.throw = true; }
 
 const port = process.env.PORT || 8765;
 const peer = `${ location.protocol }//${ location.hostname }:${ port }/gun`;
+
+// warn if enabling WebRTC for multiple peers
+let enabledRTC = false;
 
 Gun.prototype.valMapEnd = function(each, ended) {
     const gun = this; const props = [];
@@ -77,12 +77,22 @@ Gun.prototype.setAt = function(node, at, obj, cb) {
 
 /**
  * Returns a new Gun instance
- * @param { String } fileName - name of IndexedDB store
+ * @param {{ name: String, useRTC: boolean }} _
  */
-export const GunPeer = fileName => new Gun({
-    peers: [ peer ], file: fileName,
-    localStorage: false, indexedDB: true
-});
+export const GunPeer = ({ name = '', useRTC = false }) => {
+    console.info(`starting gun peer "${ name }"`);
+
+    if (useRTC) { // enable automatic peer signaling and discovery
+        console.info('enabling WebRTC'); require('gun/lib/webrtc');
+
+        if (!enabledRTC) { enabledRTC = true; }
+        else { console.error('multiple WebRTC peers - expect problems'); }
+    }
+    return new Gun({
+        peers: [ peer ], file: name,
+        localStorage: false, indexedDB: true
+    });
+};
 
 export { Gun, SEA };
 

@@ -35,7 +35,7 @@
         "async-lock": "^1.2.2",
         "core-js": "^3.6.5",
         "dotenv": "^8.2.0",
-        "gun": "^0.2020.421",
+        "gun": "0.2019.930",
         "gun-api": "file:server",
         "minimist": "^1.2.5",
         "vue": "^2.6.11",

@@ -6,7 +6,8 @@ import 'gun/lib/store'; import 'gun/lib/rindexed';
 
 import 'gun/lib/load';
 
-/** @typedef { import('gun/types/chain').IGunChainReference } GunRef */
+/** @typedef { import('./types/static').IGunStatic }         Gun */
+/** @typedef { import('./types/chain') .IGunChainReference } GunRef */
 
 const SEA = Gun.SEA;
 if (process.env.MODE === 'development') { SEA.throw = true; }
@@ -88,7 +89,8 @@ export const GunPeer = ({ name = '', useRTC = false }) => {
         if (!enabledRTC) { enabledRTC = true; }
         else { console.error('multiple WebRTC peers - expect problems'); }
     }
-    return new Gun({
+
+    return new (/** @type {Gun} */(/** @type {any} */ (Gun)))({
         peers: [ peer ], file: name,
         localStorage: false, indexedDB: true
     });

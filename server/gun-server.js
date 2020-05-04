@@ -53,11 +53,6 @@ if (argv.mode === 'development') {
             `${ (cur === peer.id ? `${ color }${ cur }\x1b[0m` : cur) }` +
             `${ idx < src.length-1 ? ', ' : '' }`, '');
 
-    const getLabel = peer => `\x1b[8m${ peer.id }\x1b[0mduration`;
-
-    gun.on('hi',  peer => console.log('\n 🉑', listPeers(peer, '\x1b[44m')) ||
-                          console.time   (getLabel(peer)));
-
-    gun.on('bye', peer => console.log('\n ⭕', listPeers(peer, '\x1b[41m')) &&
-                          console.timeEnd(getLabel(peer)));
+    gun.on('hi',  peer => console.log('\n 🉑', listPeers(peer, '\x1b[44m')));
+    gun.on('bye', peer => console.log('\n ⭕', listPeers(peer, '\x1b[41m')));
 }

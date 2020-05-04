@@ -6,8 +6,8 @@ import 'gun/lib/store'; import 'gun/lib/rindexed';
 
 import 'gun/lib/load';
 
-/** @typedef { import('./types/static').IGunStatic }         Gun */
-/** @typedef { import('./types/chain') .IGunChainReference } GunRef */
+/** @typedef { import('vendor/gun/types/static').IGunStatic }         Gun */
+/** @typedef { import('vendor/gun/types/chain') .IGunChainReference } GunRef */
 
 const SEA = Gun.SEA;
 if (process.env.MODE === 'development') { SEA.throw = true; }

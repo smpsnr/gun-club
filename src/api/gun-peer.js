@@ -18,6 +18,19 @@ const peer = `${ location.protocol }//${ location.hostname }:${ port }/gun`;
 // warn if enabling WebRTC for multiple peers
 let enabledRTC = false;
 
+Gun.on('opt', function(ctx) {
+    if (ctx.once) { return; }
+
+    ctx.on('out', /** @this { GunRef } */ function(msg) {
+        if (!msg['@'] && msg.put) {
+
+            msg.headers = { token: 'thisIsTheTokenForReals' };
+            console.debug(this, msg);
+
+        } this.to.next(msg);
+    });
+});
+
 Gun.prototype.valMapEnd = function(each, ended) {
     const gun = this; const props = [];
     const n = () => {};

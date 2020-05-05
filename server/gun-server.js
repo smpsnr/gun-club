@@ -37,6 +37,27 @@ if (argv.mode === 'production') {
 
 } else { server = app.listen(port, host); }
 
+const hasValidToken = msg => msg && msg && msg.headers &&
+    msg.headers.token && msg.headers.token === 'thisIsTheTokenForReals';
+
+Gun.on('opt', function(ctx) {
+    if (ctx.once) { return; }
+
+    ctx.on('in', function(msg) {
+        const to = this.to;
+
+        if (!msg['@'] && msg.put) {
+            console.log('\n'); console.log(msg);
+
+            if (hasValidToken(msg)) { console.log('writing'); to.next(msg); }
+            else                    { console.log('not writing'); }
+
+            console.log('\n');
+
+        } else { to.next(msg); }
+    });
+});
+
 const gun = new Gun({
     web: server, axe: axe,
     multicast: multicast ? { port: port } : false

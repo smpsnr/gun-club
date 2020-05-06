@@ -3,7 +3,8 @@ import AsyncLock        from 'async-lock';
 import { GunPeer, SEA } from 'api/gun-peer';
 import * as utils       from 'api/gun-utils';
 
-//import { GunChannel }   from 'api/gun-channel';
+/** @typedef { import('vendor/gun/types/static').IGunStatic }         Gun */
+/** @typedef { import('vendor/gun/types/chain') .IGunChainReference } GunRef */
 
 const peers = {
     user : GunPeer({ name: 'user',  useRTC: false }),
@@ -15,7 +16,15 @@ const lock = new AsyncLock();
 
 let principal = {};
 
-const login = ({ alias, password, id='' }, cb) =>
+/**
+ * Authenticate and set principal user
+ *
+ * @param {{ alias: string, password: string, id?: string }} _ - credentials
+ * @param { function(Object):void } cb - callback to run on authenticated user
+ *
+ * @description pass 'id' from register callback to verify UUID hashing
+ */
+const login = ({ alias, password, id='' }, cb) => {
     user.auth(alias, password, async ack => {
 
         if (ack.err) { throw new Error(ack.err); }
@@ -29,8 +38,15 @@ const login = ({ alias, password, id='' }, cb) =>
 
         } catch(error) { user.leave(); throw(error); }
     });
+};
 
-const register = ({ alias, password }, cb) =>
+/**
+ * Create a new user
+ *
+ * @param {{ alias: string, password: string }} _ - credentials
+ * @param { function(string):void } cb - callback to run on UUID of new user
+ */
+const register = ({ alias, password }, cb) => {
     user.create(alias, password, ack => {
 
         if (ack.err) { throw new Error(ack.err); }
@@ -49,6 +65,7 @@ const register = ({ alias, password }, cb) =>
 
         } catch(error) { user.delete(alias, password); throw(error); }
     });
+};
 
 const logout = () => { user.leave(); reconnect(); };
 
@@ -63,74 +80,85 @@ const reconnect = () => {
     //peers.group.opt('http://localhost:8765/gun');
 };
 
+/**
+ * Subscribe to channels; call cb for each channel of which principal is member
+ * @param { function(Object):Object } cb - callback to run for each channel
+ */
 const channels = cb => {
-
-    const pair = user._.sea;
+    const pair     = user._.sea;
     const channels = user.get('channels');
+
+    //! bug: map sometimes fires twice for same key
+    // related to https://gun.eco/docs/API#important ?
 
     let lastKey = '';
     channels.map().once(async (val, key) => {
 
+        //? does this actually help avoid duplicate keys?
         if (lastKey === key) { console.warn('ignoring duplicate'); return; }
         lastKey = key;         console.info('loading channel', key);
 
         const pub = await channels.getOwnSecret(key);
-        if (!pub) { return; } console.log('channel pub', pub);
+        if (!pub) { console.error('error getting channel pub'); return; }
 
         const channel = peers.group.user(pub);
+        console.debug('awaiting channel metadata');
 
-        console.log('awaiting get name');
         const name = await channel.getSecret('name', pair);
+        const perm = await channel.get('perms').getSecret(principal.uuid, pair);
 
-        console.log('awaiting get permission');
+        if (!name || !perm) { console.error('error getting metadata'); return; }
 
-        const permission =
-            await channel.get('permissions').getSecret(principal.uuid, pair);
-
-        console.log(name, permission); cb({ name, permission, pub });
+        //TODO: replace this with a Channel class
+        cb({ name, perm, pub });
     });
 };
 
 /**
- * Create a new channel and give the current user admin access
+ * Create a new channel and give principal admin permissions
+ *
+ * @param { String } name - name of new channel
+ * @description lock group peer until function returns
  */
 const addChannel = name => lock.acquire('group', async done => {
 
     const pair    = await SEA.pair(null).then();
     const channel = peers.group.user();
 
+    // note: creating user with auth(pair) initializes channel.is.alias to pair
+    //TODO: make sure this is intentional & that pair never leaks
+
     channel.auth(pair, null, async ack => {
         if (ack.err) { done(new Error(ack.err)); }
 
-        //? creating user with auth(pair) initializes alias to pair
-        // does this leak keys? see console.log(JSON.stringify(group.is.alias))
-
-        //! auth(pair) neglects some setup performed by create(alias, pass)
-        // see act g of User.prototype.create in sea.js
+        // do setup skipped by auth(pair) (usually done by create(alias, pass))
+        //TODO: document bug. see act g of User.prototype.create in sea.js
 
         channel.back(-1).get(`~${ pair.pub }`).put({ epub: pair.epub });
 
-        // store encrypted channel name in channel's space
-        // grant user access to channel name
-
-        await channel.get('pair').secret(pair).then();
-        await channel.get('pair').grant(user) .then();
+        // put channel metadata (name & permissions)
 
         await channel.get('name').secret(name).then();
-        await channel.get('name').grant(user) .then();
+        await channel.get('name').grant(user).then();
 
-        await channel.get('permissions').get(principal.uuid).secret('a').then();
-        await channel.get('permissions').get(principal.uuid).grant(user).then();
+        await channel.get('perms').get(principal.uuid).secret('admin').then();
+        await channel.get('perms').get(principal.uuid).grant(user).then();
 
-        await channel.get('content').get('contacts').grant(user).then();
-        await channel.get('content').get('events')  .grant(user).then();
+        // put private keys for access by admin user node (see authChannel())
+        //? would it make more sense to put this *in* the admin user node?
 
-        console.log('user', user);
-        console.log('channel', channel);
+        await channel.get('admin').get('pair').secret(pair).then();
+        await channel.get('admin').get('pair').grant(user).then();
 
-        channel.leave(); //indexedDB.deleteDatabase('group');
+        // generate meta keys for reading/writing the channel content node
 
-        // store encrypted channel pubkey in user's space
+        await channel.get('content').get('read') .grant(user).then();
+        await channel.get('content').get('write').grant(user).then();
+
+        channel.leave();
+
+        // put encrypted pubkey in user's channels, keyed by hash of pubkey
+        //TODO: threat model this & other channel metadata; audit hash function
 
         const hash = await utils.hash(pair.pub);
         user.get('channels').get(hash).secret(pair.pub); done();
@@ -138,15 +166,20 @@ const addChannel = name => lock.acquire('group', async done => {
 });
 
 /**
- * Authenticate a channel over which you have admin access,
- * then execute func(channel)
+ * Authenticates a channel over which principal has admin access,
+ * then executes func(channel)
+ *
+ * @param { String } pub - public key of channel
+ * @param { function(GunRef):Promise } func - function to run as channel
+ *
+ * @description lock group peer until function returns
  */
 const authChannel = (pub, func) => lock.acquire('group', async done => {
 
     let channel = peers.group.user(pub);
     if (!channel) { done(new Error('no such channel')); }
 
-    const pair = await channel.getSecret('pair', user._.sea);
+    const pair = await channel.get('admin').getSecret('pair', user._.sea);
     if (!pair)    { done(new Error('error getting channel keys')); }
 
     channel = channel.user();
@@ -154,61 +187,60 @@ const authChannel = (pub, func) => lock.acquire('group', async done => {
     channel.auth(pair, null, async ack => {
         if (ack.err) { done(new Error(ack.err)); }
 
-        console.log('doing function as channel...');
+        console.debug('executing privileged function');
         await func(channel); // do some authenticated operations
 
-        console.log('finished channel function');
+        console.debug('dropping privilege');
         channel.leave(); done();
     });
 });
 
 /**
- * Add a user to a channel over which you have admin access
+ * Add user to channel over which principal is admin
+ *
+ * @param { string } channelPub - public key of channel
+ * @param { string } userPub - public key of target user
+ *
+ * @description await this function to confirm sharing completed
  */
-const shareChannel = (channelPub, userPub) => {
+const shareChannel = async (channelPub, userPub) => {
 
     const to = peers.user.user(userPub);
     if (!to) { throw new Error('no such user'); }
 
-    console.log('sharing...');
+    const uuid = await utils.hash({
+        pub  : userPub,
+        epub : await to.get('epub').then(),
+        alias: await to.get('alias').then()
+
+    }); if (!uuid) { throw new Error('error getting UUID of target user'); }
+
     authChannel(channelPub, async channel => {
+        // grant target user access to channel metadata
 
-        await channel.get('pair').grant(to).then();
         await channel.get('name').grant(to).then();
+        await channel.get('admin').get('pair').grant(to).then();
 
-        const uuid = await utils.hash({
-            pub  : userPub,
-            epub : await to.get('epub') .then(),
-            alias: await to.get('alias').then()
-        });
-
-        console.log('setting perm');
-        await channel.get('permissions').get(uuid).secret('a').then();
-
-        console.log('granting perm');
-        await channel.get('permissions').get(uuid).grant(to).then();
-
-        console.log('shared');
-        //reconnect();
+        await channel.get('perms').get(uuid).secret('admin').then();
+        await channel.get('perms').get(uuid).grant(to).then();
     });
 };
 
 /**
- * Join a channel that has been shared with current user
+ * Join a channel previously shared with principal
+ * @param { string } pub - public key of channel
  */
 const joinChannel = async pub => {
-
     const pair = user._.sea;
+
     const channel = peers.group.user(pub);
+    if (!channel) { throw new Error('no such channel'); }
 
-    console.log('awaiting get name');
     const name = await channel.getSecret('name', pair);
+    const perm = await channel.get('perms').getSecret(principal.uuid, pair);
 
-    console.log('awaiting get permission');
-    const permission =
-        await channel.get('permissions').getSecret(principal.uuid, pair);
-
-    console.log(`joining '${ name }' with permission '${ permission }'`);
+    if (!name || !perm) { throw new Error('error getting metadata'); }
+    console.info(`joining '${ name }' with permission '${ perm }'`);
 
     const hash = await utils.hash(pub);
     user.get('channels').get(hash).secret(pub);

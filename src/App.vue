@@ -61,7 +61,7 @@
             <tr v-for="(channel, index) in channels" :key="channel.pub">
                 <td> {{ channel.name }} </td>
                 <td>
-                    <input :value="channel.permission" type="button"
+                    <input :value="channel.perm" type="button"
                            @click="openChannelModal(channel)">
                 </td>
                 <td>

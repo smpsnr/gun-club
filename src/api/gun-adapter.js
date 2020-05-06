@@ -202,6 +202,9 @@ const reconnect = () => {
     peers.user .on('bye', 'http://localhost:8765/gun');
     peers.group.on('bye', 'http://localhost:8765/gun');
 
+    //peers.user .on('out', { get: { '#': { '*': '' } } });
+    //peers.group.on('out', { get: { '#': { '*': '' } } });
+
     //peers.user .opt('http://localhost:8765/gun');
     //peers.group.opt('http://localhost:8765/gun');
 };

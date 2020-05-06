@@ -37,7 +37,7 @@ if (argv.mode === 'production') {
 
 } else { server = app.listen(port, host); }
 
-const hasValidToken = msg => msg && msg && msg.headers &&
+/* const hasValidToken = msg => msg && msg && msg.headers &&
     msg.headers.token && msg.headers.token === 'thisIsTheTokenForReals';
 
 Gun.on('opt', function(ctx) {
@@ -56,7 +56,7 @@ Gun.on('opt', function(ctx) {
 
         } else { to.next(msg); }
     });
-});
+}); */
 
 const gun = new Gun({
     web: server, axe: axe,

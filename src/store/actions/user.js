@@ -4,4 +4,6 @@ export const LOGOUT        = 'LOGOUT';
 export const ADD_CHANNEL   = 'ADD_CHANNEL';
 export const SHARE_CHANNEL = 'SHARE_CHANNEL';
 export const JOIN_CHANNEL  = 'JOIN_CHANNEL';
+export const WRITE_CHANNEL = 'WRITE_CHANNEL';
+export const READ_CHANNEL  = 'READ_CHANNEL';
 export const RECONNECT     = 'RECONNECT';

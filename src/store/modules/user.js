@@ -1,11 +1,11 @@
-import { REGISTER, LOGIN, LOGOUT, RECONNECT,
-    ADD_CHANNEL, SHARE_CHANNEL, JOIN_CHANNEL
-} from 'store/actions/user';
-
 import client from 'api/gun-adapter';
 
+import { REGISTER, LOGIN, LOGOUT, RECONNECT,
+    ADD_CHANNEL, SHARE_CHANNEL, JOIN_CHANNEL, WRITE_CHANNEL, READ_CHANNEL
+} from 'store/actions/user';
+
 const state = {
-    channels: [], principal: null
+    channels: [], contents: {}, principal: null
 };
 
 const actions = {
@@ -32,9 +32,9 @@ const actions = {
         } catch(error) { console.error(error); }
     },
 
-    [LOGOUT]: ({ commit }) => {
-        client.logout(); commit('clearPrincipal');
-    },
+    [LOGOUT]: ({ commit }) => { client.logout(); commit('clearPrincipal'); },
+
+    [RECONNECT]: () => client.reconnect(),
 
     [ADD_CHANNEL]: (_, name) => client.addChannel(name),
 
@@ -43,12 +43,23 @@ const actions = {
 
     [JOIN_CHANNEL]: (_, pub) => client.joinChannel(pub),
 
-    [RECONNECT]: () => client.reconnect()
+    [WRITE_CHANNEL]: (_, { pub, path, data }) =>
+        client.writeChannel(pub, path, data),
+
+    [READ_CHANNEL]: ({ commit }, { pub, path }) =>
+        client.readChannel(pub, path, content =>
+            commit('updateContent', { pub, content }))
 };
 
 const mutations = {
     setPrincipal: (state, user)    => state.principal = user,
     addChannel  : (state, channel) => state.channels.push(channel),
+
+    updateContent: (state, { pub, content }) => {
+        console.log(content);
+        if (!state.contents[pub]) { state.contents[pub] = {}; }
+        Object.assign(state.contents[pub], content);
+    },
 
     clearPrincipal: state => {
         state.principal = null; state.channels = [];

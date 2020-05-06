@@ -3,6 +3,8 @@ import AsyncLock        from 'async-lock';
 import { GunPeer, SEA } from 'api/gun-peer';
 import * as utils       from 'api/gun-utils';
 
+//import { GunChannel }   from 'api/gun-channel';
+
 const peers = {
     user : GunPeer({ name: 'user',  useRTC: false }),
     group: GunPeer({ name: 'group', useRTC: true }),
@@ -49,6 +51,17 @@ const register = ({ alias, password }, cb) =>
     });
 
 const logout = () => { user.leave(); reconnect(); };
+
+const reconnect = () => {
+    peers.user .on('bye', 'http://localhost:8765/gun');
+    peers.group.on('bye', 'http://localhost:8765/gun');
+
+    //peers.user .on('out', { get: { '#': { '*': '' } } });
+    //peers.group.on('out', { get: { '#': { '*': '' } } });
+
+    //peers.user .opt('http://localhost:8765/gun');
+    //peers.group.opt('http://localhost:8765/gun');
+};
 
 const channels = cb => {
 
@@ -108,6 +121,9 @@ const addChannel = name => lock.acquire('group', async done => {
 
         await channel.get('permissions').get(principal.uuid).secret('a').then();
         await channel.get('permissions').get(principal.uuid).grant(user).then();
+
+        await channel.get('content').get('contacts').grant(user).then();
+        await channel.get('content').get('events')  .grant(user).then();
 
         console.log('user', user);
         console.log('channel', channel);
@@ -198,18 +214,31 @@ const joinChannel = async pub => {
     user.get('channels').get(hash).secret(pub);
 };
 
-const reconnect = () => {
-    peers.user .on('bye', 'http://localhost:8765/gun');
-    peers.group.on('bye', 'http://localhost:8765/gun');
+const writeChannel = (pub, path, data) => {
+    const pair = user._.sea;
+    const channel = peers.group.user(pub);
 
-    //peers.user .on('out', { get: { '#': { '*': '' } } });
-    //peers.group.on('out', { get: { '#': { '*': '' } } });
+    console.log('writing to channel');
+    channel.get('content').path(path).putChannelSecret(data, pair, pub);
+};
 
-    //peers.user .opt('http://localhost:8765/gun');
-    //peers.group.opt('http://localhost:8765/gun');
+const readChannel = (pub, path, cb) => {
+    const pair = user._.sea;
+    const channel = peers.group.user(pub);
+
+    const root = channel.back(-1).get(pub).get('content');
+    const content = channel.get('content');
+
+    root.map().on(async (val, key) => {
+        const data = await content.getChannelSecret(key, pair, pub);
+        cb({ [key]: data });
+    });
+
+    /* const gunChannel = new GunChannel(root);
+    gunChannel.loadPaths(path).then(obj => cb(obj)); */
 };
 
 export default {
-    login, register, logout, reconnect,
-    channels, addChannel, shareChannel, joinChannel
+    login, register, logout, reconnect, channels,
+    addChannel, shareChannel, joinChannel, writeChannel, readChannel
 };

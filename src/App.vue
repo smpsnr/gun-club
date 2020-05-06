@@ -62,7 +62,7 @@
                 <td> {{ channel.name }} </td>
                 <td>
                     <input :value="channel.permission" type="button"
-                           @click="curChannel = channel; showChannel = true">
+                           @click="openChannelModal(channel)">
                 </td>
                 <td>
                     <input v-model="sharePubs[index]" placeholder="Pub"
@@ -87,7 +87,22 @@
             <section @click="$event.stopPropagation()">
 
                 <h2> #{{ curChannel.name }} </h2>
-                channel data goes here...
+
+                <table>
+                    <tr> <th> Key </th> <th> Value </th> </tr>
+                    <tr v-for="(val, key) in contents[curChannel.pub]" :key="key">
+
+                        <td> {{ key }} </td>
+                        <td> {{ val }} </td>
+                    </tr>
+                </table> <br>
+
+                <form>
+                    <input v-model="writePath" placeholder="Path" type="text">
+                    <input v-model="writeData" placeholder="Data" type="text">
+
+                    <input value="Write" type="button" @click="writeChannel()">
+                </form>
 
             </section>
         </div>
@@ -108,7 +123,7 @@
 import { mapState } from 'vuex';
 
 import { REGISTER, LOGIN, LOGOUT, RECONNECT,
-    ADD_CHANNEL, SHARE_CHANNEL, JOIN_CHANNEL
+    ADD_CHANNEL, SHARE_CHANNEL, JOIN_CHANNEL, WRITE_CHANNEL, READ_CHANNEL
 } from 'store/actions/user';
 
 export default {
@@ -118,12 +133,14 @@ export default {
         credentials: { alias: '', password: '' },
         newChannelName: '', joinChannelPub: '',
         sharePubs: [], curChannel: null,
+        writeData: '', writePath: '',
         showChannel: false, storage: ''
     }),
 
     computed: mapState({
         profile : state => state.user.principal,
-        channels: state => state.user.channels
+        channels: state => state.user.channels,
+        contents: state => state.user.contents
     }),
 
     mounted() {
@@ -162,7 +179,24 @@ export default {
             this.$store.dispatch(JOIN_CHANNEL, this.joinChannelPub);
         },
 
+        writeChannel() {
+            this.$store.dispatch(WRITE_CHANNEL, {
+                pub: this.curChannel.pub,
+                path: this.writePath, data: this.writeData
+            });
+        },
+
         reconnect() { this.$store.dispatch(RECONNECT); },
+
+        openChannelModal(channel) {
+            const pub = channel.pub;
+
+            //! this probably isnt good enough to prevent double subscriptions
+            if (!this.contents[pub]) {
+                this.$store.dispatch(READ_CHANNEL, { pub: pub, path: '.' });
+
+            } this.curChannel = channel; this.showChannel = true;
+        },
 
         clearStorage() {
             for (let name of [ 'user', 'group' ]) {

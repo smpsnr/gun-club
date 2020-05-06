@@ -138,14 +138,16 @@ Gun.prototype.putChannelSecret = async function(data, pair, pub, callback) {
     const gun  = this; const path = gun.getPath();
     const user = path.length > 0 ? gun.back(path.length) : gun;
 
-    let sec = await user.get('trust').get(pair.pub).path(path).then();
-    if (!sec) { console.error('error getting secret key'); return; }
+    // get channel content meta key
+    let sec = await user.get('trust').get(pair.pub).get('content').then();
 
+    if (!sec) { console.error('error getting secret key'); return; }
     const mix = await SEA.secret(await user.get('epub').then(), pair);
 
     sec       = await SEA.decrypt(sec, mix);
     const enc = await SEA.encrypt(data, sec);
 
+    // put enc to root->[channel content node] instead of user->...
     return gun.back(-1).get(pub).path(path).put(enc, callback);
 };
 
@@ -155,12 +157,15 @@ Gun.prototype.getChannelSecret = async function(prop, pair, pub) {
 
     path.push(prop);
 
-    let sec = await user.get('trust').get(pair.pub).path(path).then();
+    // get channel content meta key
+    let sec = await user.get('trust').get(pair.pub).get('content').then();
+
     if (!sec) { console.error('error getting secret key'); return; }
 
+    // get enc from root->[channel content node] instead of user->...
     const enc = await gun.back(-1).get(pub).path(path).then();
-    if (!enc) { console.error(`error getting '${ prop }'`); return; }
 
+    if (!enc) { console.error(`error getting '${ prop }'`); return; }
     const mix = await SEA.secret(await user.get('epub').then(), pair);
 
     sec = await SEA.decrypt(sec, mix);

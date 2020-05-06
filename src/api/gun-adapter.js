@@ -150,10 +150,8 @@ const addChannel = name => lock.acquire('group', async done => {
         await channel.get('admin').get('pair').secret(pair).then();
         await channel.get('admin').get('pair').grant(user).then();
 
-        // generate meta keys for reading/writing the channel content node
-
-        await channel.get('content').get('read') .grant(user).then();
-        await channel.get('content').get('write').grant(user).then();
+        // generate meta key for reading/writing the channel content node
+        await channel.get('content').grant(user).then();
 
         channel.leave();
 
@@ -247,7 +245,7 @@ const joinChannel = async pub => {
 };
 
 const writeChannel = (pub, path, data) => {
-    const pair = user._.sea;
+    const pair    = user._.sea;
     const channel = peers.group.user(pub);
 
     console.log('writing to channel');
@@ -255,7 +253,7 @@ const writeChannel = (pub, path, data) => {
 };
 
 const readChannel = (pub, path, cb) => {
-    const pair = user._.sea;
+    const pair    = user._.sea;
     const channel = peers.group.user(pub);
 
     const root = channel.back(-1).get(pub).get('content');
@@ -265,9 +263,6 @@ const readChannel = (pub, path, cb) => {
         const data = await content.getChannelSecret(key, pair, pub);
         cb({ [key]: data });
     });
-
-    /* const gunChannel = new GunChannel(root);
-    gunChannel.loadPaths(path).then(obj => cb(obj)); */
 };
 
 export default {

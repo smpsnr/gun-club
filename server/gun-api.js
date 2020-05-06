@@ -3,6 +3,11 @@ import Gun from 'gun';
 import 'gun/sea.js';
 import 'gun/lib/path.js';
 
+/** @typedef { import('vendor/gun/types/chain').IGunChainReference } GunRef */
+
+/** @typedef { import('vendor/gun/types/types').IGunCryptoKeyPair } KeyPair */
+/** @typedef { import('vendor/gun/types/types').AckCallback }       Callback */
+
 const SEA = Gun.SEA;
 
 (() => {
@@ -56,7 +61,7 @@ async function getTrustKey(user, pair, path) {
  * @override function of SEA User (see sea/create.js)
  *
  * @param { Object } data
- * @param { import('gun/types/types').AckCallback } [callback]
+ * @param { Callback } [callback]
  */
 SEA.Gun.User.prototype.secret = async function(data, callback) {
     const gun  = this;       const user = gun.back(-1).user();
@@ -89,8 +94,8 @@ SEA.Gun.User.prototype.getOwnSecret = async function(prop) {
  * Grant read access to another user
  * @override function of SEA User (see sea/create.js)
  *
- * @param { import('gun/types/chain').IGunChainReference } to
- * @param { import('gun/types/types').AckCallback } [callback]
+ * @param { GunRef } to
+ * @param { Callback } [callback]
  */
 SEA.Gun.User.prototype.grant = async function(to, callback) {
     const gun  = this;       const user = gun.back(-1).user();
@@ -114,7 +119,7 @@ SEA.Gun.User.prototype.grant = async function(to, callback) {
  * Get and decrypt data from unauthenticated user
  *
  * @param { String } prop - property to get
- * @param { import('gun/types/types').IGunCryptoKeyPair } pair - trusted keys
+ * @param { KeyPair } pair - trusted keys
  */
 Gun.prototype.getSecret = async function(prop, pair) {
     const gun  = this; const path = gun.getPath();
@@ -134,6 +139,16 @@ Gun.prototype.getSecret = async function(prop, pair) {
     return SEA.decrypt(enc, sec);
 };
 
+//TODO: 'pub' in below functions should be a hashed uuid or something
+
+/**
+ * Write encrypted data to channel content node
+ *
+ * @param { Object } data
+ * @param { KeyPair } pair - principal keys
+ * @param { string } pub - public key of channel
+ * @param { Callback } [callback]
+ */
 Gun.prototype.putChannelSecret = async function(data, pair, pub, callback) {
     const gun  = this; const path = gun.getPath();
     const user = path.length > 0 ? gun.back(path.length) : gun;
@@ -151,6 +166,13 @@ Gun.prototype.putChannelSecret = async function(data, pair, pub, callback) {
     return gun.back(-1).get(pub).path(path).put(enc, callback);
 };
 
+/**
+ * Get and decrypt data from channel content node
+ *
+ * @param { String } prop - property to get
+ * @param { KeyPair } pair - principal keys
+ * @param { String } pub - public key of channel
+ */
 Gun.prototype.getChannelSecret = async function(prop, pair, pub) {
     const gun  = this; const path = gun.getPath();
     const user = path.length > 0 ? gun.back(path.length) : gun;

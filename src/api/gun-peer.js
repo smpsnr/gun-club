@@ -66,7 +66,7 @@ Gun.prototype.value = function(cb, opt) {
 };
 
 Gun.prototype.valueAt = function(node, at, cb, opt) {
-    let pathNode = node.path(at, '/');
+    let pathNode = node.path(at);
 
     if (pathNode) { pathNode.value(cb, opt);               }
     else          { throw new Error(`No such path ${at}`); }
@@ -87,6 +87,38 @@ Gun.prototype.setAt = function(node, at, obj, cb) {
 
     if (pathNode) { pathNode.set(obj, cb);                 }
     else          { throw new Error(`No such path ${at}`); }
+};
+
+Gun.prototype.getPathsAt = async function(path) {
+    const gun = this;
+    const data = await new Promise(resolve =>
+        gun.valueAt(gun, path, v => resolve(v)));
+
+    if (data instanceof Object) {
+        return Object.keys(data).map(key => [...path, key]);
+
+    } return [path];
+};
+
+Gun.prototype.loadPathsAt = async function(path, gun) {
+    await gun;
+    if (path && gun && !gun._.link) { return [path]; }
+
+    return (new Promise(async resolve => {
+        let paths = [];
+        const pathsAt = await this.getPathsAt(path);
+
+        for (let pathAt of pathsAt) {
+            Array.prototype.push.apply(paths, await this.loadPathsAt(
+                pathAt, gun.get(pathAt[pathAt.length-1])));
+
+        } resolve(paths);
+    }));
+};
+
+Gun.prototype.loadPaths = function(path) {
+    const gun = this;
+    return this.loadPathsAt(path, gun);
 };
 
 /**

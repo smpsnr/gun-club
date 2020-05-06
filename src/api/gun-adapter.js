@@ -150,8 +150,10 @@ const addChannel = name => lock.acquire('group', async done => {
         await channel.get('admin').get('pair').secret(pair).then();
         await channel.get('admin').get('pair').grant(user).then();
 
-        // generate meta key for reading/writing the channel content node
+        // create content "meta" node & generate key
+
         await channel.get('content').grant(user).then();
+        await channel.back(-1).get(pair.pub).get('content').then();
 
         channel.leave();
 
@@ -248,20 +250,40 @@ const writeChannel = (pub, path, data) => {
     const pair    = user._.sea;
     const channel = peers.group.user(pub);
 
-    console.log('writing to channel');
-    channel.get('content').path(path).putChannelSecret(data, pair, pub);
+    // write to content meta node -
+    // putChannelSecret() translates 'put' to actual content node
+
+    const meta = channel.get('content').path(path);
+    meta.putChannelSecret(data, pair, pub);
 };
 
 const readChannel = (pub, path, cb) => {
     const pair    = user._.sea;
     const channel = peers.group.user(pub);
 
-    const root = channel.back(-1).get(pub).get('content');
-    const content = channel.get('content');
+    // get the actual content node & subscribe to updates
 
-    root.map().on(async (val, key) => {
-        const data = await content.getChannelSecret(key, pair, pub);
-        cb({ [key]: data });
+    const content = channel.back(-1).get(pub).get('content');
+    if (path && path[0]) { content.path(path); }
+
+    content.map().on(async (val, key) => {
+        // get all paths on this key (recursive)
+
+        content.loadPaths([key]).then(async paths => {
+            for (const path of paths) {
+
+                // read from content meta node -
+                // getChannelSecret() translates 'get' to actual content node
+
+                const data = await channel.get('content')
+                    .path(path).getChannelSecret(pair, pub);
+
+                // nest data inside new object according to path
+
+                const obj = path.reduceRight((acc, cur) =>
+                    ({ [cur]: acc }), data); cb(obj); // callback
+            }
+        });
     });
 };
 

@@ -44,21 +44,31 @@ const actions = {
     [JOIN_CHANNEL]: (_, pub) => client.joinChannel(pub),
 
     [WRITE_CHANNEL]: (_, { pub, path, data }) =>
-        client.writeChannel(pub, path, data),
+        client.writeChannel(pub, path.split('/'), data),
 
     [READ_CHANNEL]: ({ commit }, { pub, path }) =>
-        client.readChannel(pub, path, content =>
-            commit('updateContent', { pub, content }))
+        client.readChannel(pub, path.split('/'), newContent =>
+            commit('updateContent', { pub, newContent }))
 };
 
 const mutations = {
     setPrincipal: (state, user)    => state.principal = user,
     addChannel  : (state, channel) => state.channels.push(channel),
 
-    updateContent: (state, { pub, content }) => {
-        console.log(content);
-        if (!state.contents[pub]) { state.contents[pub] = {}; }
-        Object.assign(state.contents[pub], content);
+    updateContent: (state, { pub, newContent }) => {
+        const curContent = state.contents[pub];
+
+        const merge = (cur, src) => {
+            Object.entries(src).forEach(([key, val]) => {
+
+                if (val instanceof Object && key in cur) {
+                    src[key] = { ...val, ...merge(cur[key], val) };
+                }
+            }); return { ...cur, ...src };
+        };
+
+        if (!curContent) { state.contents[pub] = newContent; }
+        else { state.contents[pub] = merge(curContent, newContent); }
     },
 
     clearPrincipal: state => {

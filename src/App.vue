@@ -193,7 +193,7 @@ export default {
 
             //! this probably isnt good enough to prevent double subscriptions
             if (!this.contents[pub]) {
-                this.$store.dispatch(READ_CHANNEL, { pub: pub, path: '.' });
+                this.$store.dispatch(READ_CHANNEL, { pub: pub, path: '' });
 
             } this.curChannel = channel; this.showChannel = true;
         },

@@ -1,4 +1,5 @@
-import Gun from './gun-api.js';
+import Gun                                from './gun-api.js';
+import { getContentChannel, validatePut } from './gun-api.js';
 
 import express from 'express'; import https from 'https';
 import path    from 'path';    import fs    from 'fs';
@@ -18,15 +19,13 @@ const port = process.env.PORT || 8765;
 const axe       = process.env.AXE       || true;
 const multicast = process.env.MULTICAST || true;
 
-console.info('\n', '\x1b[33m',
-             `Starting relay peer on port ${ port } with /gun...`, '\x1b[0m\n');
+// configure server
 
-const app = express();
+const app = express(); let server;
 
 app.use(Gun.serve);
 app.use(express.static(__dirname));
 
-let server;
 if (argv.mode === 'production') {
 
     server = https.createServer({
@@ -37,50 +36,26 @@ if (argv.mode === 'production') {
 
 } else { server = app.listen(port, host); }
 
-/**
- * Check if msg represents a channel content put
- * @returns public key of channel, or false
- */
-function getContentChannel(context, msg) {
-    if (!msg || !msg.put) { return false; }
-    if ( msg['@'])        { return false; }
-
-    for (const [soul, data] of Object.entries(msg.put)) {
-
-        if (soul.startsWith('~')) { continue; }
-        if (soul === 'content')   { return Object.keys(data).find(k => k != '_'); }
-
-        const content = context.next['content'];
-        if (!content) { return false; }
-
-        for (const [key, channel] of Object.entries(content.put)) {
-            if (channel['#'] && channel['#'] === soul) { return key; }
-        }
-
-    } return false;
-}
-
-async function validate(msg, pub) {
-    if (!(msg && msg.headers && msg.headers.token)) { return false; }
-
-    try      { return await Gun.SEA.verify(msg.headers.token, pub); }
-    catch(e) { return false; }
-}
+// restrict put requests
 
 Gun.on('opt', function(context) {
     if (context.once) { return; } this.to.next(context);
 
     context.on('in', async function(msg) {
-
         const channel = getContentChannel(context, msg);
-        if (channel) {
 
-            if (await validate(msg, channel)) { this.to.next(msg); }
-            else { console.warn('blocking unauthorized put'); }
+        if (channel) { // validate channel content put
+            if (await validatePut(msg, channel)) { this.to.next(msg); }
+            else         { console.warn('blocking unauthorized put'); }
 
         } else { this.to.next(msg); }
     });
 });
+
+// start server
+
+console.info('\n', '\x1b[33m',
+             `Starting relay peer on port ${ port } with /gun...`, '\x1b[0m\n');
 
 const gun = new Gun({
     web: server, axe: axe,
@@ -98,6 +73,6 @@ if (argv.mode === 'development') {
             `${ (cur === peer.id ? `${ color }${ cur }\x1b[0m` : cur) }` +
             `${ idx < src.length-1 ? ', ' : '' }`, '');
 
-    gun.on('hi',  peer => console.log('\n 🉑', listPeers(peer, '\x1b[44m')));
-    gun.on('bye', peer => console.log('\n ⭕', listPeers(peer, '\x1b[41m')));
+    Gun.on('hi',  peer => console.log('\n 🉑', listPeers(peer, '\x1b[44m')));
+    Gun.on('bye', peer => console.log('\n ⭕', listPeers(peer, '\x1b[41m')));
 }

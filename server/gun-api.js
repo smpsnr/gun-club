@@ -139,4 +139,40 @@ Gun.prototype.getSecret = async function(prop, pair) {
     return SEA.decrypt(enc, sec);
 };
 
+/**
+ * Check that token in msg was signed by channel pub
+ * @returns true if token is valid
+ */
+export async function validatePut(msg, pub) {
+    if (!(msg && msg.headers && msg.headers.token)) { return false; }
+
+    try      { return await Gun.SEA.verify(msg.headers.token, pub); }
+    catch(e) { return false; }
+}
+
+/**
+ * Check if msg represents a channel content put
+ * @returns public key of channel, or false
+ */
+export function getContentChannel(context, msg) {
+    if (!msg || !msg.put) { return false; }
+    if ( msg['@'])        { return false; }
+
+    for (const [soul, data] of Object.entries(msg.put)) {
+
+        if (soul.startsWith('~')) { continue; }
+        if (soul === 'content')   { return Object.keys(data).find(k => k != '_'); }
+
+        const content = context.next['content'];
+
+        if (!content)     { return false; }
+        if (!content.put) { continue; }
+
+        for (const [key, channel] of Object.entries(content.put)) {
+            if (channel['#'] && channel['#'] === soul) { return key; }
+        }
+
+    } return false;
+}
+
 export default Gun;

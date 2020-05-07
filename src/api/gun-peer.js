@@ -1,4 +1,5 @@
-import Gun from 'gun-api';
+import Gun                                from 'gun-api';
+import { getContentChannel, validatePut } from 'gun-api';
 
 // enable RAD storage adapter backed by IndexedDB
 import 'gun/lib/radix'; import 'gun/lib/radisk';
@@ -18,31 +19,6 @@ const peer = `${ location.protocol }//${ location.hostname }:${ port }/gun`;
 
 // warn if enabling WebRTC for multiple peers
 let enabledRTC = false;
-
-/**
- * Check if msg represents a channel content put
- * @returns public key of channel, or false
- */
-function getContentChannel(context, msg) {
-    if (!msg || !msg.put) { return false; }
-    if ( msg['@'])        { return false; }
-
-    for (const [soul, data] of Object.entries(msg.put)) {
-
-        if (soul.startsWith('~')) { continue; }
-        if (soul === 'content')   { return Object.keys(data).find(k => k != '_'); }
-
-        const content = context.next['content'];
-
-        if (!content)     { return false; }
-        if (!content.put) { continue; }
-
-        for (const [key, channel] of Object.entries(content.put)) {
-            if (channel['#'] && channel['#'] === soul) { return key; }
-        }
-
-    } return false;
-}
 
 /**
  * Handle channel content puts

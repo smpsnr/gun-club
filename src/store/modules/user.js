@@ -57,18 +57,20 @@ const mutations = {
 
     updateContent: (state, { pub, newContent }) => {
         const curContent = state.contents[pub];
-
         const merge = (cur, src) => {
+
             Object.entries(src).forEach(([key, val]) => {
 
-                if (val instanceof Object && key in cur) {
+                if (key in cur && val      instanceof Object &&
+                                  cur[key] instanceof Object) {
+
                     src[key] = { ...val, ...merge(cur[key], val) };
                 }
             }); return { ...cur, ...src };
         };
 
         if (!curContent) { state.contents[pub] = newContent; }
-        else { state.contents[pub] = merge(curContent, newContent); }
+        else             { state.contents[pub] = merge(curContent, newContent); }
     },
 
     clearPrincipal: state => {

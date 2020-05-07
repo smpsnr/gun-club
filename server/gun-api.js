@@ -163,7 +163,17 @@ Gun.prototype.putChannelSecret = async function(data, pair, pub, callback) {
     const enc = await SEA.encrypt(data, sec);
 
     // put enc to root->[channel content node] instead of user->...
-    return gun.back(-1).get(pub).path(path).put(enc, callback);
+
+    const parentPath = path.slice(0, path.length-1);
+    const dataKey    = path[path.length-1];
+
+    // handle key / path conflicts
+    // i.e. (put 'x' to ['parent']) then (put 'x' to ['parent', 'child'])
+
+    const parent = gun.back(-1).get(pub).path(parentPath);
+    if (await parent.then()) { await parent.put({}).then(); }
+
+    return parent.get(dataKey).put(enc, callback);
 };
 
 /**

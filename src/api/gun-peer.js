@@ -4,7 +4,8 @@ import Gun from 'gun-api';
 import 'gun/lib/radix'; import 'gun/lib/radisk';
 import 'gun/lib/store'; import 'gun/lib/rindexed';
 
-import 'gun/lib/load';
+//! HACK: seems spaghetti to include this here...
+import store from '../store/index';
 
 /** @typedef { import('vendor/gun/types/static').IGunStatic }         Gun */
 /** @typedef { import('vendor/gun/types/chain') .IGunChainReference } GunRef */
@@ -18,33 +19,46 @@ const peer = `${ location.protocol }//${ location.hostname }:${ port }/gun`;
 // warn if enabling WebRTC for multiple peers
 let enabledRTC = false;
 
-function checkContentPut(context, msg) {
-    if (!msg.put)                 { return false; }
-    if (!context.next['content']) { return false; }
+/**
+ * Check if msg represents a channel content put
+ * @returns public key of channel, or false
+ */
+function getContentChannel(context, msg) {
+    if (!msg || !msg.put) { return false; }
+    if ( msg['@'])        { return false; }
 
-    for (const soul of Object.keys(msg.put)) {
-        if (soul === 'content') { return true; }
+    for (const [soul, data] of Object.entries(msg.put)) {
 
-        for (const channel of Object.values(context.next['content'].next)) {
-            if (channel.link === soul) { return true; }
+        if (soul.startsWith('~')) { continue; }
+        if (soul === 'content')   { return Object.keys(data).find(k => k != '_'); }
 
-            for (const node of Object.values(channel.next)) {
-                if (node.link === soul) { return true; }
-            }
+        const content = context.next['content'];
+
+        if (!content)     { return false; }
+        if (!content.put) { continue; }
+
+        for (const [key, channel] of Object.entries(content.put)) {
+            if (channel['#'] && channel['#'] === soul) { return key; }
         }
 
     } return false;
 }
 
+/**
+ * Handle channel content puts
+ */
 Gun.on('opt', /** @this { any } */ function(context) {
 
     if (context.once) { return; } this.to.next(context);
     context.on('out', /** @this { any } */ function(msg) {
 
-        if (checkContentPut(context, msg)) {
+        const channel = getContentChannel(context, msg);
+        if (channel) {
 
-            console.debug('putting to content');
-            msg.headers = { token: 'thisIsTheTokenForReals' };
+            const token = store.getters.getChannelByKey(channel).token;
+            if (!token) { console.error('unauthorized put'); }
+
+            msg.headers = { token };
 
         } this.to.next(msg);
     });

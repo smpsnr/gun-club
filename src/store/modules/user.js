@@ -5,7 +5,11 @@ import { REGISTER, LOGIN, LOGOUT, RECONNECT,
 } from 'store/actions/user';
 
 const state = {
-    channels: [], contents: {}, principal: null
+    channels: [], channelsByKey: {}, contents: {}, principal: null
+};
+
+const getters = {
+    getChannelByKey: state => key => state.channels[state.channelsByKey[key]]
 };
 
 const actions = {
@@ -52,8 +56,12 @@ const actions = {
 };
 
 const mutations = {
-    setPrincipal: (state, user)    => state.principal = user,
-    addChannel  : (state, channel) => state.channels.push(channel),
+    setPrincipal: (state, user) => state.principal = user,
+
+    addChannel: (state, channel) => {
+        const len = state.channels.push(channel);
+        state.channelsByKey[channel.pub] = len-1;
+    },
 
     updateContent: (state, { pub, newContent }) => {
         const curContent = state.contents[pub];
@@ -78,4 +86,4 @@ const mutations = {
     }
 };
 
-export default { state, actions, mutations };
+export default { state, getters, actions, mutations };

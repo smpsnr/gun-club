@@ -5,8 +5,6 @@ import { SEA } from 'api/gun-peer';
 /** @typedef { import('vendor/gun/types/types').IGunCryptoKeyPair } KeyPair */
 /** @typedef { import('vendor/gun/types/types').AckCallback }       Callback */
 
-//TODO: 'pub' in below functions should be a hashed uuid or something
-
 async function getContentKey(channel, pub) {
     const sec = await channel.get('trust').get(pub).get('content').then();
     if (!sec) { throw new Error('error getting content key'); } return sec;

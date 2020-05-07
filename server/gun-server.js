@@ -37,9 +37,6 @@ if (argv.mode === 'production') {
 
 } else { server = app.listen(port, host); }
 
-const hasValidToken = msg => msg.headers && msg.headers.token
-    && msg.headers.token === 'thisIsTheTokenForReals';
-
 /**
  * Check if msg represents a channel content put
  * @returns public key of channel, or false
@@ -63,15 +60,22 @@ function getContentChannel(context, msg) {
     } return false;
 }
 
+async function validate(msg, pub) {
+    if (!(msg && msg.headers && msg.headers.token)) { return false; }
+
+    try      { return await Gun.SEA.verify(msg.headers.token, pub); }
+    catch(e) { return false; }
+}
+
 Gun.on('opt', function(context) {
     if (context.once) { return; } this.to.next(context);
 
-    context.on('in', function(msg) {
+    context.on('in', async function(msg) {
 
         const channel = getContentChannel(context, msg);
         if (channel) {
 
-            if (hasValidToken(msg)) { console.log(context, msg);this.to.next(msg); }
+            if (await validate(msg, channel)) { this.to.next(msg); }
             else { console.warn('blocking unauthorized put'); }
 
         } else { this.to.next(msg); }

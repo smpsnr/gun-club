@@ -7,6 +7,8 @@ import * as utils       from 'api/gun-utils';
 /** @typedef { import('vendor/gun/types/static').IGunStatic }         Gun */
 /** @typedef { import('vendor/gun/types/chain') .IGunChainReference } GunRef */
 
+/** @typedef { import('vendor/gun/types/types').IGunCryptoKeyPair }   KeyPair */
+
 const peers = {
     user : GunPeer({ name: 'user',  useRTC: false }),
     group: GunPeer({ name: 'group', useRTC: true }),
@@ -109,9 +111,14 @@ const channels = cb => {
         const perm = await channel.get('perms').getSecret(principal.uuid, pair);
 
         if (!name || !perm) { console.error('error getting metadata'); return; }
+        let token = null; if (perm === 'admin' || perm === 'read') {
+
+            token = await channel.get('tokens').getSecret(principal.uuid, pair);
+            if (!token) { console.error('error getting write token'); return; }
+        }
 
         //TODO: replace this with a Channel class
-        cb({ name, perm, pub });
+        cb({ name, perm, pub, token });
     });
 };
 
@@ -137,13 +144,19 @@ const addChannel = name => lock.acquire('group', async done => {
 
         channel.back(-1).get(`~${ pair.pub }`).put({ epub: pair.epub });
 
-        // put channel metadata (name & permissions)
+        // put channel metadata (name, permission, token)
 
         await channel.get('name').secret(name).then();
         await channel.get('name').grant(user).then();
 
         await channel.get('perms').get(principal.uuid).secret('admin').then();
         await channel.get('perms').get(principal.uuid).grant(user).then();
+
+        // generate & sign write access token
+        const token = await SEA.sign(SEA.random(32).toString('base64'), pair);
+
+        await channel.get('tokens').get(principal.uuid).secret(token).then();
+        await channel.get('tokens').get(principal.uuid).grant(user).then();
 
         // put private keys for access by admin user node (see authChannel())
         //? would it make more sense to put this *in* the admin user node?
@@ -157,7 +170,7 @@ const addChannel = name => lock.acquire('group', async done => {
         channel.leave(); // create content node outside of channel
         await channel.back(-1).get('content').get(pair.pub).then();
 
-        // put encrypted pubkey in user's channels, keyed by hash of pubkey
+        // put encrypted pubkey & token in user's channels, keyed by hash of pubkey
         //TODO: threat model this & other channel metadata; audit hash function
 
         const hash = await utils.hash(pair.pub);
@@ -170,7 +183,7 @@ const addChannel = name => lock.acquire('group', async done => {
  * then executes func(channel)
  *
  * @param { String } pub - public key of channel
- * @param { function(GunRef):Promise } func - function to run as channel
+ * @param { function(GunRef, KeyPair):Promise } func - function to run as channel
  *
  * @description lock group peer until function returns
  */
@@ -188,7 +201,7 @@ const authChannel = (pub, func) => lock.acquire('group', async done => {
         if (ack.err) { done(new Error(ack.err)); }
 
         console.debug('executing privileged function');
-        await func(channel); // do some authenticated operations
+        await func(channel, pair); // do some authenticated operations
 
         console.debug('dropping privilege');
         channel.leave(); done();
@@ -215,7 +228,7 @@ const shareChannel = async (channelPub, userPub) => {
 
     }); if (!uuid) { throw new Error('error getting UUID of target user'); }
 
-    authChannel(channelPub, async channel => {
+    authChannel(channelPub, async (channel, pair) => {
         // grant target user access to channel metadata
 
         await channel.get('name').grant(to).then();
@@ -223,6 +236,15 @@ const shareChannel = async (channelPub, userPub) => {
 
         await channel.get('perms').get(uuid).secret('admin').then();
         await channel.get('perms').get(uuid).grant(to).then();
+
+        // generate & sign write access token
+        const token = await SEA.sign(SEA.random(32).toString('base64'), pair);
+
+        await channel.get('tokens').get(uuid).secret(token).then();
+        await channel.get('tokens').get(uuid).grant(to).then();
+
+        // generate meta content key
+        await channel.get('content').grant(to).then();
     });
 };
 
@@ -240,7 +262,12 @@ const joinChannel = async pub => {
     const perm = await channel.get('perms').getSecret(principal.uuid, pair);
 
     if (!name || !perm) { throw new Error('error getting metadata'); }
-    console.info(`joining '${ name }' with permission '${ perm }'`);
+    let token = null; if (perm === 'admin' || perm === 'read') {
+
+        token = await channel.get('tokens').getSecret(principal.uuid, pair);
+        if (!token) { console.error('error getting write token'); return; }
+
+    } console.info(`joining '${ name }' with permission '${ perm }'`);
 
     const hash = await utils.hash(pub);
     user.get('channels').get(hash).secret(pub);

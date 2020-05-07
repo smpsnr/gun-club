@@ -151,7 +151,7 @@ const addChannel = name => lock.acquire('group', async done => {
         await channel.get('admin').get('pair').secret(pair).then();
         await channel.get('admin').get('pair').grant(user).then();
 
-        // create content "meta" node & generate key
+        // generate meta content key & create content node
 
         await channel.get('content').grant(user).then();
         await channel.back(-1).get('content').get(pair.pub).then();
@@ -267,7 +267,7 @@ const readChannel = (pub, path, cb) => {
     content.map().on(async (val, key) => {
         // get all paths on this key (recursive)
 
-        content.loadPaths([key]).then(async paths => {
+        content.loadPathsAt([key]).then(async paths => {
             for (const path of paths) {
 
                 // read channel content

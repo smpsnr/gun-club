@@ -56,9 +56,8 @@ Gun.prototype.valMapEnd = function(each, ended) {
                 if (!count) { ended.apply(this, args); }
             });
         });
-    });
 
-    return gun;
+    }); return gun;
 };
 
 Gun.prototype.value = function(cb, opt) {
@@ -71,60 +70,46 @@ Gun.prototype.value = function(cb, opt) {
     }, opt);
 };
 
-Gun.prototype.valueAt = function(node, at, cb, opt) {
-    let pathNode = node.path(at);
+Gun.prototype.valueAt = function(at, cb, opt) {
+    const pathNode = this.path(at);
 
     if (pathNode) { pathNode.value(cb, opt);               }
     else          { throw new Error(`No such path ${at}`); }
 };
 
-Gun.prototype.putAt = function(node, at, obj, cb, opt) {
-    let pathNode = node.path(at, '/');
-
-    if (pathNode) {
-        node._.paths = node._.paths || [];
-        pathNode.put(obj, cb, opt); node._.paths.push(at);
-
-    } else { throw new Error(`No such path ${at}`); }
-};
-
-Gun.prototype.setAt = function(node, at, obj, cb) {
-    let pathNode = node.path(at, '/');
-
-    if (pathNode) { pathNode.set(obj, cb);                 }
-    else          { throw new Error(`No such path ${at}`); }
-};
-
-Gun.prototype.getPathsAt = async function(path) {
-    const gun = this;
+/**
+ * Get child paths of path (not recursive)
+ * @param { Array<String> } at - path
+ */
+Gun.prototype.getPathsAt = async function(at) {
     const data = await new Promise(resolve =>
-        gun.valueAt(gun, path, v => resolve(v)));
+        this.valueAt(at, v => resolve(v)));
 
     if (data instanceof Object) {
-        return Object.keys(data).map(key => [...path, key]);
+        return Object.keys(data).map(key => [...at, key]);
 
-    } return [path];
+    } return [at];
 };
 
-Gun.prototype.loadPathsAt = async function(path, gun) {
-    await gun;
-    if (path && gun && !gun._.link) { return [path]; }
+/**
+ * Find all child paths of path (recursive)
+ *
+ * @param { Array<String> } at - path
+ * @returns { Promise<Array<Array<String>>> }
+ */
+Gun.prototype.loadPathsAt = async function(at) {
+    const gun = this; await gun;
+    if (at && gun && !gun._.link) { return [at]; }
 
-    return (new Promise(async resolve => {
-        let paths = [];
-        const pathsAt = await this.getPathsAt(path);
+    const paths = [];
+    const pathsAt = await gun.getPathsAt(at);
 
-        for (let pathAt of pathsAt) {
-            Array.prototype.push.apply(paths, await this.loadPathsAt(
-                pathAt, gun.get(pathAt[pathAt.length-1])));
+    for (const path of pathsAt) {
 
-        } resolve(paths);
-    }));
-};
+        const next = gun.get(path[path.length-1]);
+        Array.prototype.push.apply(paths, await next.loadPathsAt(path));
 
-Gun.prototype.loadPaths = function(path) {
-    const gun = this;
-    return this.loadPathsAt(path, gun);
+    } return paths;
 };
 
 /**
@@ -138,7 +123,7 @@ export const GunPeer = ({ name = '', useRTC = false }) => {
         console.info('enabling WebRTC'); require('gun/lib/webrtc');
 
         if (!enabledRTC) { enabledRTC = true; }
-        else { console.error('multiple WebRTC peers - expect problems'); }
+        else { console.warn('multiple WebRTC peers - expect problems'); }
     }
 
     return new (/** @type {Gun} */(/** @type {any} */ (Gun)))({

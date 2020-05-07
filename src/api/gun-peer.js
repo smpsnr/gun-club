@@ -26,17 +26,25 @@ let enabledRTC = false;
 Gun.on('opt', /** @this { any } */ function(context) {
 
     if (context.once) { return; } this.to.next(context);
-    context.on('out', /** @this { any } */ function(msg) {
+    context.on('out', /** @this { any } */ async function(msg) {
 
         const channel = getContentChannel(context, msg);
         if (channel) {
 
             const token = store.getters.getChannelByKey(channel).token;
-            if (!token) { console.error('unauthorized put'); }
-
             msg.headers = { token };
 
-        } this.to.next(msg);
+            if (process.env.MODE === 'production') {
+                // only transmit valid put requests
+                if (await validatePut(msg, channel)) { this.to.next(msg); }
+                else         { console.warn('blocking unauthorized put'); }
+
+            } else { // let the master node handle it
+                if (!token) { console.warn('unauthorized put'); }
+                this.to.next(msg);
+            }
+
+        } else { this.to.next(msg); }
     });
 });
 

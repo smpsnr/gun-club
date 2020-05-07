@@ -18,17 +18,23 @@ const peer = `${ location.protocol }//${ location.hostname }:${ port }/gun`;
 // warn if enabling WebRTC for multiple peers
 let enabledRTC = false;
 
-// Gun.on('opt', function(ctx) {
-//     if (ctx.once) { return; }
+// Gun.on('opt', function(at) {
+//     if (at.once) { return; } this.to.next(at);
 
-//     ctx.on('out', /** @this { GunRef } */ function(msg) {
-//         if (!msg['@'] && msg.put) {
+//     at.on('node', /** @this { GunRef } */ function(msg) {
+//         if (/*!msg['@'] &&*/ msg.put) {
+
+//             Gun.node.is(msg.put, (val, key, node) => {
+//                 console.log('key', key);
+//                 console.log('val', val);
+//                 console.log('node', node);
+//             });
 
 //             msg.headers = { token: 'thisIsTheTokenForReals' };
 //             console.debug(this, msg);
 
 //         } this.to.next(msg);
-//     });
+//     }, at);
 // });
 
 Gun.prototype.valMapEnd = function(each, ended) {

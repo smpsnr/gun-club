@@ -18,24 +18,37 @@ const peer = `${ location.protocol }//${ location.hostname }:${ port }/gun`;
 // warn if enabling WebRTC for multiple peers
 let enabledRTC = false;
 
-// Gun.on('opt', function(at) {
-//     if (at.once) { return; } this.to.next(at);
+function checkContentPut(context, msg) {
+    if (!msg.put)                 { return false; }
+    if (!context.next['content']) { return false; }
 
-//     at.on('node', /** @this { GunRef } */ function(msg) {
-//         if (/*!msg['@'] &&*/ msg.put) {
+    for (const soul of Object.keys(msg.put)) {
+        if (soul === 'content') { return true; }
 
-//             Gun.node.is(msg.put, (val, key, node) => {
-//                 console.log('key', key);
-//                 console.log('val', val);
-//                 console.log('node', node);
-//             });
+        for (const channel of Object.values(context.next['content'].next)) {
+            if (channel.link === soul) { return true; }
 
-//             msg.headers = { token: 'thisIsTheTokenForReals' };
-//             console.debug(this, msg);
+            for (const node of Object.values(channel.next)) {
+                if (node.link === soul) { return true; }
+            }
+        }
 
-//         } this.to.next(msg);
-//     }, at);
-// });
+    } return false;
+}
+
+Gun.on('opt', /** @this { any } */ function(context) {
+
+    if (context.once) { return; } this.to.next(context);
+    context.on('out', /** @this { any } */ function(msg) {
+
+        if (checkContentPut(context, msg)) {
+
+            console.debug('putting to content');
+            msg.headers = { token: 'thisIsTheTokenForReals' };
+
+        } this.to.next(msg);
+    });
+});
 
 Gun.prototype.valMapEnd = function(each, ended) {
     const gun = this; const props = [];

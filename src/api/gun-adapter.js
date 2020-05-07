@@ -151,12 +151,11 @@ const addChannel = name => lock.acquire('group', async done => {
         await channel.get('admin').get('pair').secret(pair).then();
         await channel.get('admin').get('pair').grant(user).then();
 
-        // generate meta content key & create content node
-
+        // generate meta content key
         await channel.get('content').grant(user).then();
-        await channel.back(-1).get('content').get(pair.pub).then();
 
-        channel.leave();
+        channel.leave(); // create content node outside of channel
+        await channel.back(-1).get('content').get(pair.pub).then();
 
         // put encrypted pubkey in user's channels, keyed by hash of pubkey
         //TODO: threat model this & other channel metadata; audit hash function

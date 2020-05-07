@@ -37,26 +37,47 @@ if (argv.mode === 'production') {
 
 } else { server = app.listen(port, host); }
 
-// const hasValidToken = msg => msg && msg && msg.headers &&
-//     msg.headers.token && msg.headers.token === 'thisIsTheTokenForReals';
+const hasValidToken = msg => msg && msg && msg.headers &&
+    msg.headers.token && msg.headers.token === 'thisIsTheTokenForReals';
 
-// Gun.on('opt', function(ctx) {
-//     if (ctx.once) { return; } this.to.next(ctx);
+function checkContentPut(context, msg) {
+    if (!msg.put)  { return false; }
+    if ( msg['@']) { return false; }
 
-//     ctx.on('in', function(msg) {
-//         const to = this.to;
+    for (const soul of Object.keys(msg.put)) {
 
-//         if (/* !msg['@'] && */ msg.put) {
-//             //console.log('\n'); console.log(msg);
+        if (soul.startsWith('~')) { continue; }
+        if (soul === 'content')   { return true; }
 
-//             if (hasValidToken(msg)) { console.log('writing'); to.next(msg); }
-//             else                    { console.log('not writing'); }
+        const content = context.next['content'];
+        if (!content) { return false; }
 
-//             //console.log('\n');
+        for (const channel of Object.values(content.put)) {
+            if (channel['#'] && channel['#'] === soul) { return true; }
+            if (!channel.put)                          { continue; }
 
-//         } else { to.next(msg); }
-//     });
-// });
+            for (const node of Object.values(channel.put)) {
+                if (node['#'] && node['#'] === soul) { return true; }
+            }
+        }
+
+    } return false;
+}
+
+Gun.on('opt', function(context) {
+    if (context.once) { return; } this.to.next(context);
+
+    context.on('in', function(msg) {
+
+        if (checkContentPut(context, msg)) {
+            console.log('detected content put');
+
+            if (hasValidToken(msg)) { this.to.next(msg); }
+            else                    { console.warn('not writing'); }
+
+        } else { this.to.next(msg); }
+    });
+});
 
 const gun = new Gun({
     web: server, axe: axe,

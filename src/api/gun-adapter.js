@@ -1,6 +1,7 @@
 import AsyncLock        from 'async-lock';
-
 import { GunPeer, SEA } from 'api/gun-peer';
+
+import * as GunChannel  from 'api/gun-channel';
 import * as utils       from 'api/gun-utils';
 
 /** @typedef { import('vendor/gun/types/static').IGunStatic }         Gun */
@@ -153,7 +154,7 @@ const addChannel = name => lock.acquire('group', async done => {
         // create content "meta" node & generate key
 
         await channel.get('content').grant(user).then();
-        await channel.back(-1).get(pair.pub).get('content').then();
+        await channel.back(-1).get('content').get(pair.pub).then();
 
         channel.leave();
 
@@ -250,11 +251,8 @@ const writeChannel = (pub, path, data) => {
     const pair    = user._.sea;
     const channel = peers.group.user(pub);
 
-    // write to content meta node -
-    // putChannelSecret() translates 'put' to actual content node
-
-    const meta = channel.get('content').path(path);
-    meta.putChannelSecret(data, pair, pub);
+    // write channel content
+    GunChannel.putChannelSecret(channel, pub, path, data, pair);
 };
 
 const readChannel = (pub, path, cb) => {
@@ -263,7 +261,7 @@ const readChannel = (pub, path, cb) => {
 
     // get the actual content node & subscribe to updates
 
-    const content = channel.back(-1).get(pub).get('content');
+    const content = channel.back(-1).get('content').get(pub);
     if (path && path[0]) { content.path(path); }
 
     content.map().on(async (val, key) => {
@@ -272,11 +270,10 @@ const readChannel = (pub, path, cb) => {
         content.loadPaths([key]).then(async paths => {
             for (const path of paths) {
 
-                // read from content meta node -
-                // getChannelSecret() translates 'get' to actual content node
+                // read channel content
 
-                const data = await channel.get('content')
-                    .path(path).getChannelSecret(pair, pub);
+                const data = await GunChannel.getChannelSecret(
+                    channel, pub, path, pair);
 
                 // nest data inside new object according to path
 

@@ -4,7 +4,7 @@
     "private": true,
     "scripts": {
         "preinstall": "npx npm-force-resolutions",
-        "dev-gun": "cd server && rm -rf radata && node gun-server.js --mode=development",
+        "dev-gun": "cd server && rm -rf radata && node --inspect gun-server.js --mode=development",
         "gun-node": "cd server && node gun-server.js --mode=production",
         "dev-server": "webpack-dev-server --hot --progress --display-error-details --env=local --mode=development",
         "dev-server-ios": "npm run dev-server -- --host='0.0.0.0' --allowed-hosts='.local'",

@@ -37,28 +37,27 @@ if (argv.mode === 'production') {
 
 } else { server = app.listen(port, host); }
 
-const hasValidToken = msg => msg && msg && msg.headers &&
-    msg.headers.token && msg.headers.token === 'thisIsTheTokenForReals';
+const hasValidToken = msg => msg.headers && msg.headers.token
+    && msg.headers.token === 'thisIsTheTokenForReals';
 
-function checkContentPut(context, msg) {
-    if (!msg.put)  { return false; }
-    if ( msg['@']) { return false; }
+/**
+ * Check if msg represents a channel content put
+ * @returns public key of channel, or false
+ */
+function getContentChannel(context, msg) {
+    if (!msg || !msg.put) { return false; }
+    if ( msg['@'])        { return false; }
 
-    for (const soul of Object.keys(msg.put)) {
+    for (const [soul, data] of Object.entries(msg.put)) {
 
         if (soul.startsWith('~')) { continue; }
-        if (soul === 'content')   { return true; }
+        if (soul === 'content')   { return Object.keys(data).find(k => k != '_'); }
 
         const content = context.next['content'];
         if (!content) { return false; }
 
-        for (const channel of Object.values(content.put)) {
-            if (channel['#'] && channel['#'] === soul) { return true; }
-            if (!channel.put)                          { continue; }
-
-            for (const node of Object.values(channel.put)) {
-                if (node['#'] && node['#'] === soul) { return true; }
-            }
+        for (const [key, channel] of Object.entries(content.put)) {
+            if (channel['#'] && channel['#'] === soul) { return key; }
         }
 
     } return false;
@@ -69,11 +68,11 @@ Gun.on('opt', function(context) {
 
     context.on('in', function(msg) {
 
-        if (checkContentPut(context, msg)) {
-            console.log('detected content put');
+        const channel = getContentChannel(context, msg);
+        if (channel) {
 
-            if (hasValidToken(msg)) { this.to.next(msg); }
-            else                    { console.warn('not writing'); }
+            if (hasValidToken(msg)) { console.log(context, msg);this.to.next(msg); }
+            else { console.warn('blocking unauthorized put'); }
 
         } else { this.to.next(msg); }
     });

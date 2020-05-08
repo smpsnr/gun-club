@@ -1,6 +1,11 @@
 import Gun             from './gun-api.js';
 import * as GunChannel from './gun-channel.js';
 
+import 'gun/nts.js';      import 'gun/lib/store.js';
+import 'gun/lib/wire.js'; import 'gun/axe.js';
+
+import 'gun/lib/evict.js';
+
 import express from 'express'; import https from 'https';
 import path    from 'path';    import fs    from 'fs';
 
@@ -23,8 +28,8 @@ const multicast = process.env.MULTICAST || true;
 
 const app = express(); let server;
 
-app.use(Gun.serve);
-app.use(express.static(__dirname));
+//app.use(Gun.serve);
+//app.use(express.static(__dirname));
 
 if (argv.mode === 'production') {
 

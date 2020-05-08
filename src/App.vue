@@ -68,6 +68,12 @@
                     <input v-model="sharePubs[index]" placeholder="Pub"
                            type="text" class="key">
 
+                    <select v-model="sharePerms[index]">
+                        <option value="read">  read  </option>
+                        <option value="write"> write </option>
+                        <option value="admin"> admin </option>
+                    </select>
+
                     <input value="Share" type="button"
                            @click="shareChannel(index)">
                 </td>
@@ -131,10 +137,12 @@ export default {
 
     data: () => ({
         credentials: { alias: '', password: '' },
+
         newChannelName: '', joinChannelPub: '',
-        sharePubs: [], curChannel: null,
-        writeData: '', writePath: '',
-        showChannel: false, storage: ''
+        writeData     : '', writePath     : '',
+
+        sharePubs     : [], sharePerms    : [],
+        showChannel   : false, curChannel : null, storage: ''
     }),
 
     computed: mapState({
@@ -142,6 +150,9 @@ export default {
         channels: state => state.user.channels,
         contents: state => state.user.contents
     }),
+
+    //! hack
+    watch: { channels: function() { this.sharePerms.push('read'); } },
 
     mounted() {
         const mega = 1000 * 1000;
@@ -170,8 +181,9 @@ export default {
 
         shareChannel(index) {
             this.$store.dispatch(SHARE_CHANNEL, {
-                channelPub: this.channels[index].pub,
-                userPub   : this.sharePubs[index]
+                channelPub: this.channels  [index].pub,
+                userPub   : this.sharePubs [index],
+                perm      : this.sharePerms[index],
             });
         },
 

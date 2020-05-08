@@ -42,8 +42,8 @@ const actions = {
 
     [ADD_CHANNEL]: (_, name) => client.addChannel(name),
 
-    [SHARE_CHANNEL]: (_, { channelPub, userPub }) =>
-        client.shareChannel(channelPub, userPub),
+    [SHARE_CHANNEL]: (_, { channelPub, userPub, perm }) =>
+        client.shareChannel(channelPub, userPub, perm),
 
     [JOIN_CHANNEL]: (_, pub) => client.joinChannel(pub),
 

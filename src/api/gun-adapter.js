@@ -111,7 +111,7 @@ const channels = cb => {
         const perm = await channel.get('perms').getSecret(principal.uuid, pair);
 
         if (!name || !perm) { console.error('error getting metadata'); return; }
-        let token = null; if (perm === 'admin' || perm === 'read') {
+        let token = null; if (perm === 'admin' || perm === 'write') {
 
             token = await channel.get('tokens').getSecret(principal.uuid, pair);
             if (!token) { console.error('error getting write token'); return; }
@@ -216,7 +216,7 @@ const authChannel = (pub, func) => lock.acquire('group', async done => {
  *
  * @description await this function to confirm sharing completed
  */
-const shareChannel = async (channelPub, userPub) => {
+const shareChannel = async (channelPub, userPub, perm) => {
 
     const to = peers.user.user(userPub);
     if (!to) { throw new Error('no such user'); }
@@ -229,22 +229,26 @@ const shareChannel = async (channelPub, userPub) => {
     }); if (!uuid) { throw new Error('error getting UUID of target user'); }
 
     authChannel(channelPub, async (channel, pair) => {
-        // grant target user access to channel metadata
 
-        await channel.get('name').grant(to).then();
-        await channel.get('admin').get('pair').grant(to).then();
+        switch(perm) {
+            case 'admin': {
+                await channel.get('admin').get('pair').grant(to).then();
 
-        await channel.get('perms').get(uuid).secret('admin').then();
-        await channel.get('perms').get(uuid).grant(to).then();
+            } case 'write': {
+                const token = await SEA.sign(SEA.random(32).toString('base64'), pair);
 
-        // generate & sign write access token
-        const token = await SEA.sign(SEA.random(32).toString('base64'), pair);
+                await channel.get('tokens').get(uuid).secret(token).then();
+                await channel.get('tokens').get(uuid).grant(to).then();
 
-        await channel.get('tokens').get(uuid).secret(token).then();
-        await channel.get('tokens').get(uuid).grant(to).then();
+            } case 'read': {
+                await channel.get('name').grant(to).then();
+                await channel.get('content').grant(to).then();
 
-        // generate meta content key
-        await channel.get('content').grant(to).then();
+            } default: {
+                await channel.get('perms').get(uuid).secret(perm).then();
+                await channel.get('perms').get(uuid).grant(to).then();
+            }
+        }
     });
 };
 
@@ -261,8 +265,10 @@ const joinChannel = async pub => {
     const name = await channel.getSecret('name', pair);
     const perm = await channel.get('perms').getSecret(principal.uuid, pair);
 
+    console.log('perm is', perm);
+
     if (!name || !perm) { throw new Error('error getting metadata'); }
-    let token = null; if (perm === 'admin' || perm === 'read') {
+    let token = null; if (perm === 'admin' || perm === 'write') {
 
         token = await channel.get('tokens').getSecret(principal.uuid, pair);
         if (!token) { console.error('error getting write token'); return; }

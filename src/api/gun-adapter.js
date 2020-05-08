@@ -28,6 +28,8 @@ let principal = {};
  * @description pass 'id' from register callback to verify UUID hashing
  */
 const login = ({ alias, password, id='' }, cb) => {
+
+    if (!password) { alias = JSON.parse(alias); }
     user.auth(alias, password, async ack => {
 
         if (ack.err) { throw new Error(ack.err); }
@@ -121,6 +123,36 @@ const channels = cb => {
         cb({ name, perm, pub, token });
     });
 };
+
+/**
+ * Create a new user and invite them to channel
+ * @param { String } channelPub
+ */
+const addChannelUser = channelPub => lock.acquire('group', async done => {
+
+    const pair = await SEA.pair(null).then();
+    const to   = peers.group.user();
+
+    to.auth(pair, null, async ack => {
+
+        to.back(-1).get(`~${ pair.pub }`).put({ epub: pair.epub });
+
+        const uuid = await utils.hash(to.is);
+        if (!uuid) { throw new Error('error generating uuid'); }
+
+        to.get('uuid').secret(uuid, () => to.leave());
+
+        console.log('sharing with', JSON.stringify(pair));
+        await shareChannel(channelPub, pair.pub, 'read'); done();
+    });
+
+
+
+    //await user.get('invitations').get(pair.pub).secret(pair).then();
+    //await user.get('invitations').get(pair.pub).grant(to).then();
+
+    // now generate url with channel pub and
+});
 
 /**
  * Create a new channel and give principal admin permissions
@@ -318,5 +350,5 @@ const readChannel = (pub, path, cb) => {
 
 export default {
     login, register, logout, reconnect, channels,
-    addChannel, shareChannel, joinChannel, writeChannel, readChannel
+    addChannel, shareChannel, joinChannel, writeChannel, readChannel, addChannelUser
 };

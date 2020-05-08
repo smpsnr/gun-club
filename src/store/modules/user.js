@@ -1,7 +1,7 @@
 import client from 'api/gun-adapter';
 
 import { REGISTER, LOGIN, LOGOUT, RECONNECT,
-    ADD_CHANNEL, SHARE_CHANNEL, JOIN_CHANNEL, WRITE_CHANNEL, READ_CHANNEL
+    ADD_CHANNEL, SHARE_CHANNEL, JOIN_CHANNEL, WRITE_CHANNEL, READ_CHANNEL, ADD_CHANNEL_USER
 } from 'store/actions/user';
 
 const state = {
@@ -52,7 +52,9 @@ const actions = {
 
     [READ_CHANNEL]: ({ commit }, { pub, path }) =>
         client.readChannel(pub, path.split('/'), newContent =>
-            commit('updateContent', { pub, newContent }))
+            commit('updateContent', { pub, newContent })),
+
+    [ADD_CHANNEL_USER]: (_, channelPub) => client.addChannelUser(channelPub)
 };
 
 const mutations = {

@@ -7,3 +7,4 @@ export const JOIN_CHANNEL  = 'JOIN_CHANNEL';
 export const WRITE_CHANNEL = 'WRITE_CHANNEL';
 export const READ_CHANNEL  = 'READ_CHANNEL';
 export const RECONNECT     = 'RECONNECT';
+export const ADD_CHANNEL_USER = 'ADD_CHANNEL_USER';

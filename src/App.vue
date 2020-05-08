@@ -76,6 +76,9 @@
 
                     <input value="Share" type="button"
                            @click="shareChannel(index)">
+
+                    <input value="URL" type="button"
+                           @click="addChannelUser(index)">
                 </td>
                 <td>
                     <input :id="`channel-${ index }-pub`" :value="channel.pub"
@@ -129,7 +132,7 @@
 import { mapState } from 'vuex';
 
 import { REGISTER, LOGIN, LOGOUT, RECONNECT,
-    ADD_CHANNEL, SHARE_CHANNEL, JOIN_CHANNEL, WRITE_CHANNEL, READ_CHANNEL
+    ADD_CHANNEL, SHARE_CHANNEL, JOIN_CHANNEL, WRITE_CHANNEL, READ_CHANNEL, ADD_CHANNEL_USER
 } from 'store/actions/user';
 
 export default {
@@ -185,6 +188,10 @@ export default {
                 userPub   : this.sharePubs [index],
                 perm      : this.sharePerms[index],
             });
+        },
+
+        addChannelUser(index) {
+            this.$store.dispatch(ADD_CHANNEL_USER, this.channels[index].pub);
         },
 
         joinChannel() {

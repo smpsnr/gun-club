@@ -1,5 +1,5 @@
-import Gun                                from './gun-api.js';
-import { getContentChannel, validatePut } from './gun-api.js';
+import Gun             from './gun-api.js';
+import * as GunChannel from './gun-channel.js';
 
 import express from 'express'; import https from 'https';
 import path    from 'path';    import fs    from 'fs';
@@ -34,23 +34,11 @@ if (argv.mode === 'production') {
 
     }, app).listen(port);
 
-} else { server = app.listen(port, host); }
+} else {
+    Gun.SEA.throw = true;
+    server = app.listen(port, host);
 
-// restrict put requests
-
-Gun.on('opt', function(context) {
-    if (context.once) { return; } this.to.next(context);
-
-    context.on('in', async function(msg) {
-        const channel = getContentChannel(context, msg);
-
-        if (channel) { // validate channel content put
-            if (await validatePut(msg, channel)) { this.to.next(msg); }
-            else         { console.warn('blocking unauthorized put'); }
-
-        } else { this.to.next(msg); }
-    });
-});
+} Gun.on('opt', GunChannel.handleIncoming);
 
 // start server
 
@@ -63,8 +51,6 @@ const gun = new Gun({
 });
 
 if (argv.mode === 'development') {
-    Gun.SEA.throw = true;
-
     // log peer connections
 
     const listPeers = (peer, color) => Object.keys(gun._.opt.peers).reduce(
@@ -73,6 +59,6 @@ if (argv.mode === 'development') {
             `${ (cur === peer.id ? `${ color }${ cur }\x1b[0m` : cur) }` +
             `${ idx < src.length-1 ? ', ' : '' }`, '');
 
-    Gun.on('hi',  peer => console.log('\n 🉑', listPeers(peer, '\x1b[44m')));
-    Gun.on('bye', peer => console.log('\n ⭕', listPeers(peer, '\x1b[41m')));
+    gun.on('hi',  peer => console.log('\n 🉑', listPeers(peer, '\x1b[44m')));
+    gun.on('bye', peer => console.log('\n ⭕', listPeers(peer, '\x1b[41m')));
 }

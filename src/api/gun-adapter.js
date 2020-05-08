@@ -1,7 +1,7 @@
 import AsyncLock        from 'async-lock';
 import { GunPeer, SEA } from 'api/gun-peer';
 
-import * as GunChannel  from 'api/gun-channel';
+import * as GunChannel  from 'gun-api/gun-channel';
 import * as utils       from 'api/gun-utils';
 
 /** @typedef { import('vendor/gun/types/static').IGunStatic }         Gun */

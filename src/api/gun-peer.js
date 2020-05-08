@@ -1,11 +1,11 @@
-import Gun                                from 'gun-api';
-import { getContentChannel, validatePut } from 'gun-api';
+import Gun                      from 'gun-api';
+import { buildOutgoingHandler } from 'gun-api/gun-channel';
 
 // enable RAD storage adapter backed by IndexedDB
 import 'gun/lib/radix'; import 'gun/lib/radisk';
 import 'gun/lib/store'; import 'gun/lib/rindexed';
 
-//! HACK: seems spaghetti to include this here...
+//! vuex dependency is circular - see below
 import store from '../store/index';
 
 /** @typedef { import('vendor/gun/types/static').IGunStatic }         Gun */
@@ -20,34 +20,18 @@ const peer = `${ location.protocol }//${ location.hostname }:${ port }/gun`;
 // warn if enabling WebRTC for multiple peers
 let enabledRTC = false;
 
+// configure channel request handler to load tokens from vuex
+// wrap getter function (store uses gun-adapter which depends on this module)
+
+const handleOutgoing = buildOutgoingHandler(
+    channel => store.getters.getChannelByKey(channel));
+
+Gun.on('opt', handleOutgoing);
+
 /**
- * Handle channel content puts
+ * @param each - called for each item with (val, key)
+ * @ended ended - called once on map completion with (vals[], key)
  */
-Gun.on('opt', /** @this { any } */ function(context) {
-
-    if (context.once) { return; } this.to.next(context);
-    context.on('out', /** @this { any } */ async function(msg) {
-
-        const channel = getContentChannel(context, msg);
-        if (channel) {
-
-            const token = store.getters.getChannelByKey(channel).token;
-            msg.headers = { token };
-
-            if (process.env.MODE === 'production') {
-                // only transmit valid put requests
-                if (await validatePut(msg, channel)) { this.to.next(msg); }
-                else         { console.warn('blocking unauthorized put'); }
-
-            } else { // let the master node handle it
-                if (!token) { console.warn('unauthorized put'); }
-                this.to.next(msg);
-            }
-
-        } else { this.to.next(msg); }
-    });
-});
-
 Gun.prototype.valMapEnd = function(each, ended) {
     const gun = this; const props = [];
     const n = () => {};

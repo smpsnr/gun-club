@@ -237,13 +237,16 @@ export default {
     }
     .modal > section {
         position: relative;
-        width: 50%; margin: 10% auto;
+        width: 85%; margin: 2.5% auto;
 
         padding: 1em 2em 2em 2em;
         background: white;
     }
+    h3 { display: inline-block; }
     th, td { text-align: left; padding-right: 1ch; }
 
-    footer { position: fixed; bottom: 0; }
-    h3 { display: inline-block; }
+    footer {
+        position: fixed; left: 0; bottom: 0; width: 100%;
+        background: white; border-top: 1px solid black;
+    }
 </style>

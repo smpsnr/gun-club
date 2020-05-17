@@ -16,8 +16,8 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') });
 const host = process.env.HOST || '0.0.0.0';
 const port = process.env.PORT || 8765;
 
-const axe       = process.env.AXE       || true;
-const multicast = process.env.MULTICAST || true;
+const axe       = process.env.AXE       || false;
+const multicast = process.env.MULTICAST || false;
 
 // configure server
 

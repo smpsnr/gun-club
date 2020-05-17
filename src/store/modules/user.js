@@ -1,11 +1,13 @@
 import client from 'api/gun-adapter';
 
-import { REGISTER, LOGIN, LOGOUT, RECONNECT,
+import { INIT, REGISTER, LOGIN, LOGOUT, RECONNECT,
     ADD_CHANNEL, SHARE_CHANNEL, JOIN_CHANNEL, WRITE_CHANNEL, READ_CHANNEL
 } from 'store/actions/user';
 
 const state = {
-    channels: [], channelsByKey: {}, contents: {}, principal: null
+    principal: null,
+    channels     : [], peers   : [],
+    channelsByKey: {}, contents: {},
 };
 
 const getters = {
@@ -13,6 +15,10 @@ const getters = {
 };
 
 const actions = {
+
+    [INIT]: ({ commit }) => {
+        client.peerEvents(event => commit('updatePeers', event));
+    },
 
     [REGISTER]: ({ dispatch }, { alias, password }) => {
         try {
@@ -58,6 +64,10 @@ const actions = {
 const mutations = {
     setPrincipal: (state, user) => state.principal = user,
 
+    clearPrincipal: state => {
+        state.principal = null; state.channels = [];
+    },
+
     addChannel: (state, channel) => {
         const len = state.channels.push(channel);
         state.channelsByKey[channel.pub] = len-1;
@@ -81,8 +91,24 @@ const mutations = {
         else             { state.contents[pub] = merge(curContent, newContent); }
     },
 
-    clearPrincipal: state => {
-        state.principal = null; state.channels = [];
+    updatePeers: (state, event) => {
+        switch(event.type) {
+
+            case 'hi': {
+                if (!state.peers.includes(event.peerId)) {
+                    //console.debug(`%c 🉑 ${ event.peerId }`, 'color: green');
+                    state.peers.push(event.peerId);
+                }
+            } break;
+
+            case 'bye': {
+                const index = state.peers.indexOf(event.peerId);
+                if (index >= 0) {
+                    //console.debug(`%c ⭕ ${ event.peerId }`, 'color: red');
+                    state.peers.splice(index, 1);
+                }
+            } break;
+        }
     }
 };
 

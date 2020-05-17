@@ -73,14 +73,26 @@ const register = ({ alias, password }, cb) => {
 const logout = () => { user.leave(); reconnect(); };
 
 const reconnect = () => {
-    peers.user .on('bye', 'http://localhost:8765/gun');
-    peers.group.on('bye', 'http://localhost:8765/gun');
+    for (const peer in peers.user ._.opt.peers) { peers.user .on('bye', peer); }
+    for (const peer in peers.group._.opt.peers) { peers.group.on('bye', peer); }
 
     //peers.user .on('out', { get: { '#': { '*': '' } } });
     //peers.group.on('out', { get: { '#': { '*': '' } } });
 
     //peers.user .opt('http://localhost:8765/gun');
     //peers.group.opt('http://localhost:8765/gun');
+};
+
+/**
+ * Subscribe to peer events
+ * @param { function(Object):Object } cb - callback to run for each peer event
+ */
+const peerEvents = cb => {
+    peers.user .on('hi',  peer => cb({ type: 'hi',  peerId: peer.id }));
+    peers.user .on('bye', peer => cb({ type: 'bye', peerId: peer.id }));
+
+    peers.group.on('hi',  peer => cb({ type: 'hi',  peerId: peer.id }));
+    peers.group.on('bye', peer => cb({ type: 'bye', peerId: peer.id }));
 };
 
 /**
@@ -317,6 +329,6 @@ const readChannel = (pub, path, cb) => {
 };
 
 export default {
-    login, register, logout, reconnect, channels,
+    login, register, logout, reconnect, channels, peerEvents,
     addChannel, shareChannel, joinChannel, writeChannel, readChannel
 };

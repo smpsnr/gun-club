@@ -119,8 +119,8 @@
         <table>
             <!-- debug data -->
             <tr>
-                <th> Peers </th>
-                <td> idk   </td>
+                <th> Peers              </th>
+                <td> {{ peers.length }} </td>
                 <td>
                     <input value="Reconnect" type="button"
                            @click="reconnect()">
@@ -144,7 +144,7 @@
 <script>
 import { mapState } from 'vuex';
 
-import { REGISTER, LOGIN, LOGOUT, RECONNECT,
+import { INIT, REGISTER, LOGIN, LOGOUT, RECONNECT,
     ADD_CHANNEL, SHARE_CHANNEL, JOIN_CHANNEL, WRITE_CHANNEL, READ_CHANNEL
 } from 'store/actions/user';
 
@@ -166,8 +166,13 @@ export default {
     computed: mapState({
         profile : state => state.user.principal,
         channels: state => state.user.channels,
-        contents: state => state.user.contents
+        contents: state => state.user.contents,
+        peers   : state => state.user.peers
     }),
+
+    created() {
+        this.$store.dispatch(INIT);
+    },
 
     mounted() {
         const mega = 1000 * 1000;

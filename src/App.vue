@@ -116,10 +116,26 @@
     </div>
 
     <footer>
-        <h3> Debug </h3> <!-- debug data -->
-        <input value="Reconnect peers" type="button" @click="reconnect()">
-        <input value="Clear storage"   type="button" @click="clearStorage()">
-        <span> {{ storage }} </span>
+        <table>
+            <!-- debug data -->
+            <tr>
+                <th> Peers </th>
+                <td> idk   </td>
+                <td>
+                    <input value="Reconnect" type="button"
+                           @click="reconnect()">
+                </td>
+            </tr>
+            <tr>
+                <th> Disk          </th>
+                <td> {{ storage }} </td>
+                <td>
+                    <input value="Clear" type="button"
+                           @click="clearStorage()" :disabled="clearNum > 0">
+                </td>
+            </tr>
+
+        </table>
     </footer>
 
 </main>
@@ -136,13 +152,15 @@ export default {
     name: 'App',
 
     data: () => ({
-        credentials: { alias: '', password: '' }, storage: '',
+        credentials: { alias: '', password: '' },
 
         newChannelName: '',    joinChannelPub: '',
         showChannel   : false, curChannel    : null,
 
         sharePub      : '',    sharePerm     : 'read',
-        writeData     : '',    writePath     : ''
+        writeData     : '',    writePath     : '',
+
+        storage       : '',    clearNum      : 0
     }),
 
     computed: mapState({
@@ -209,10 +227,14 @@ export default {
 
         clearStorage() {
             for (let name of [ 'user', 'group' ]) {
-                const req = indexedDB.deleteDatabase(name);
+                const req = indexedDB.deleteDatabase(name);   this.clearNum++;
 
-                req.onerror   = () => console.warn(`error deleting ${ name }`);
-                req.onsuccess = () => console.info(`deleted ${ name }`);
+                req.onsuccess = () => {
+                    console.info(`deleted ${ name }`);        this.clearNum--;
+
+                }; req.onerror = () => {
+                    console.warn(`error deleting ${ name }`); this.clearNum--;
+                };
             }
         },
 
@@ -247,6 +269,6 @@ export default {
 
     footer {
         position: fixed; left: 0; bottom: 0; width: 100%;
-        background: white; border-top: 1px solid black;
+        background: lightgray;
     }
 </style>

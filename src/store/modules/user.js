@@ -96,7 +96,7 @@ const mutations = {
 
             case 'hi': {
                 if (!state.peers.includes(event.peerId)) {
-                    //console.debug(`%c 🉑 ${ event.peerId }`, 'color: green');
+                    console.debug(`%c 🉑 ${ event.peerId }`, 'color: green');
                     state.peers.push(event.peerId);
                 }
             } break;
@@ -104,7 +104,7 @@ const mutations = {
             case 'bye': {
                 const index = state.peers.indexOf(event.peerId);
                 if (index >= 0) {
-                    //console.debug(`%c ⭕ ${ event.peerId }`, 'color: red');
+                    console.debug(`%c ⭕ ${ event.peerId }`, 'color: red');
                     state.peers.splice(index, 1);
                 }
             } break;

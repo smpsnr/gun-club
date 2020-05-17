@@ -11,9 +11,6 @@ import store from '../store/index';
 const SEA = Gun.SEA;
 if (process.env.MODE === 'development') { SEA.throw = true; }
 
-const port = process.env.PORT || 8765;
-const peer = `${ location.protocol }//${ location.hostname }:${ port }/gun`;
-
 // warn if enabling WebRTC for multiple peers
 let enabledRTC = false;
 
@@ -105,10 +102,30 @@ Gun.prototype.loadPathsAt = async function(at) {
 };
 
 /**
- * Returns a new Gun instance
- * @param {{ name: String, useRTC: boolean }} _
+ * Route the output of this Gun instance to the input of another instance
+ * @param { import('types').GunRef } otherGun
  */
-export const GunPeer = ({ name = '', useRTC = false }) => {
+Gun.prototype.connectInstance = function(otherGun) {
+    this.on('out', function(msg) {
+
+        otherGun.on('in', msg);
+        this.to.next(msg);
+    });
+};
+
+/**
+ * Add peer by url
+ * @param { String } url
+ */
+Gun.prototype.addPeer = function(url) {
+    this.opt(url);
+};
+
+/**
+ * Returns a new Gun instance
+ * @param {{ name?: String, peers?: Array<String>, useRTC?: boolean }} [_]
+ */
+export const GunPeer = ({ name = '', peers = [], useRTC = false }) => {
     console.info(`starting gun peer "${ name }"`);
 
     if (useRTC) { // enable automatic peer signaling and discovery
@@ -119,7 +136,7 @@ export const GunPeer = ({ name = '', useRTC = false }) => {
     }
 
     return new (/**@type {import('types').Gun}*/(/**@type {any}*/ (Gun)))({
-        peers: [ peer ], file: name,
+        peers: peers, file: name,
         localStorage: false, indexedDB: true
     });
 };

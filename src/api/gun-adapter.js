@@ -1,18 +1,16 @@
-import AsyncLock        from 'async-lock';
-import { GunPeer, SEA } from 'api/gun-peer';
+import AsyncLock       from 'async-lock';
+import { SEA }         from 'api/gun-peer';
 
-import * as GunChannel  from 'gun-api/gun-channel';
-import * as utils       from 'api/gun-utils';
+import * as GunChannel from 'gun-api/gun-channel';
+import * as utils      from 'api/gun-utils';
 
-const peers = {
-    user : GunPeer({ name: 'user',  useRTC: false }),
-    group: GunPeer({ name: 'group', useRTC: true }),
-};
+import network         from 'api/gun-network';
 
-const user = peers.user.user();
 const lock = new AsyncLock();
-
 let principal = {};
+
+const peers = network.join();
+const user  = peers.user.user();
 
 /**
  * Authenticate and set principal user
@@ -73,9 +71,6 @@ const reconnect = () => {
 
     //peers.user .on('out', { get: { '#': { '*': '' } } });
     //peers.group.on('out', { get: { '#': { '*': '' } } });
-
-    //peers.user .opt('http://localhost:8765/gun');
-    //peers.group.opt('http://localhost:8765/gun');
 };
 
 /**

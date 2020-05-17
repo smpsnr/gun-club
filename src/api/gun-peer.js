@@ -8,9 +8,6 @@ import 'gun/lib/store'; import 'gun/lib/rindexed';
 //! vuex dependency is circular - see below
 import store from '../store/index';
 
-/** @typedef { import('vendor/gun/types/static').IGunStatic }         Gun */
-/** @typedef { import('vendor/gun/types/chain') .IGunChainReference } GunRef */
-
 const SEA = Gun.SEA;
 if (process.env.MODE === 'development') { SEA.throw = true; }
 
@@ -46,7 +43,7 @@ Gun.prototype.valMapEnd = function(each, ended) {
         Gun.node.is(list, (_, prop) => { count += 1; props.push(prop); });
 
         props.forEach(prop => {
-            gun.get(prop).once(/** @this { GunRef } */ function() {
+            gun.get(prop).once(/**@this {import('types').GunRef}*/ function() {
                 count -= 1; each.apply(this, arguments);
                 if (!count) { ended.apply(this, args); }
             });
@@ -57,7 +54,7 @@ Gun.prototype.valMapEnd = function(each, ended) {
 
 Gun.prototype.value = function(cb, opt) {
 
-    return this.once(/** @this { GunRef } */ function(val, field) {
+    return this.once(/**@this {import('types').GunRef}*/ function(val, field) {
         // @ts-ignore
         if (val) { val = Gun.obj.copy(val); delete val._; }
         cb.call(this, val, field);
@@ -121,7 +118,7 @@ export const GunPeer = ({ name = '', useRTC = false }) => {
         else { console.warn('multiple WebRTC peers - expect problems'); }
     }
 
-    return new (/** @type {Gun} */(/** @type {any} */ (Gun)))({
+    return new (/**@type {import('types').Gun}*/(/**@type {any}*/ (Gun)))({
         peers: [ peer ], file: name,
         localStorage: false, indexedDB: true
     });

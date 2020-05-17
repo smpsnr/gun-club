@@ -1,15 +1,10 @@
 import Gun from './gun-api.js';
 const SEA = Gun.SEA;
 
-/** @typedef { import('vendor/gun/types/chain').IGunChainReference } GunRef */
-
-/** @typedef { import('vendor/gun/types/types').IGunCryptoKeyPair } KeyPair */
-/** @typedef { import('vendor/gun/types/types').AckCallback }       Callback */
-
 /**
  * Get secret channel content key
  *
- * @param { GunRef } channel
+ * @param { import('types').GunRef } channel
  * @param { String } pub
  */
 async function getContentKey(channel, pub) {
@@ -20,9 +15,11 @@ async function getContentKey(channel, pub) {
 /**
  * Write encrypted data to channel content node
  *
- * @param { GunRef }        channel               @param { string }   pub - public key of channel
- * @param { Array<String> } path                  @param { Object }   data
- * @param { KeyPair }       pair - principal keys @param { Callback } [callback]
+ * @param { import('types').GunRef } channel @param { string } pub - of channel
+ * @param { Array<String>          } path    @param { Object } data
+ *
+ * @param { import('types').KeyPair     } pair - of principal
+ * @param { import('types').AckCallback } [callback]
  */
 export const putChannelSecret = async function(channel, pub, path, data, pair, callback) {
     // get channel content meta key
@@ -47,9 +44,11 @@ export const putChannelSecret = async function(channel, pub, path, data, pair, c
 
 /**
  * Get and decrypt data from channel content node
+
+ * @param { import('types').GunRef } channel @param { String } pub - of channel
  *
- * @param { GunRef }        channel @param { String }  pub  - public key of channel
- * @param { Array<String> } path    @param { KeyPair } pair - principal keys
+ * @param { Array<String>           } path
+ * @param { import('types').KeyPair } pair - of principal
  */
 export const getChannelSecret = async function(channel, pub, path, pair) {
     // get channel content meta key

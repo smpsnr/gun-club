@@ -3,11 +3,6 @@ import Gun from 'gun';
 import 'gun/sea.js';
 import 'gun/lib/path.js';
 
-/** @typedef { import('vendor/gun/types/chain').IGunChainReference } GunRef */
-
-/** @typedef { import('vendor/gun/types/types').IGunCryptoKeyPair } KeyPair */
-/** @typedef { import('vendor/gun/types/types').AckCallback }       Callback */
-
 const SEA = Gun.SEA;
 
 (() => {
@@ -61,7 +56,7 @@ async function getTrustKey(user, pair, path) {
  * @override function of SEA User (see sea/create.js)
  *
  * @param { Object } data
- * @param { Callback } [callback]
+ * @param { import('types').AckCallback } [callback]
  */
 SEA.Gun.User.prototype.secret = async function(data, callback) {
     const gun  = this;       const user = gun.back(-1).user();
@@ -94,8 +89,8 @@ SEA.Gun.User.prototype.getOwnSecret = async function(prop) {
  * Grant read access to another user
  * @override function of SEA User (see sea/create.js)
  *
- * @param { GunRef } to
- * @param { Callback } [callback]
+ * @param { import('types').GunRef } to
+ * @param { import('types').AckCallback } [callback]
  */
 SEA.Gun.User.prototype.grant = async function(to, callback) {
     const gun  = this;       const user = gun.back(-1).user();
@@ -119,7 +114,7 @@ SEA.Gun.User.prototype.grant = async function(to, callback) {
  * Get and decrypt data from unauthenticated user
  *
  * @param { String } prop - property to get
- * @param { KeyPair } pair - trusted keys
+ * @param { import('types').KeyPair } pair - trusted keys
  */
 Gun.prototype.getSecret = async function(prop, pair) {
     const gun  = this; const path = gun.getPath();

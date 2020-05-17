@@ -4,11 +4,6 @@ import { GunPeer, SEA } from 'api/gun-peer';
 import * as GunChannel  from 'gun-api/gun-channel';
 import * as utils       from 'api/gun-utils';
 
-/** @typedef { import('vendor/gun/types/static').IGunStatic }         Gun */
-/** @typedef { import('vendor/gun/types/chain') .IGunChainReference } GunRef */
-
-/** @typedef { import('vendor/gun/types/types').IGunCryptoKeyPair }   KeyPair */
-
 const peers = {
     user : GunPeer({ name: 'user',  useRTC: false }),
     group: GunPeer({ name: 'group', useRTC: true }),
@@ -195,7 +190,11 @@ const addChannel = name => lock.acquire('group', async done => {
  * then executes func(channel)
  *
  * @param { String } pub - public key of channel
- * @param { function(GunRef, KeyPair):Promise } func - function to run as channel
+ * @param {
+            function(import('types').GunRef,
+ *                   import('types').KeyPair):Promise
+
+ *        } func - function to run as channel
  *
  * @description lock group peer until function returns
  */

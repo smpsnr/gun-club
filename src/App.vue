@@ -1,34 +1,33 @@
 <template>
 <main>
 
-    <section>
-        <h2> Login </h2>
+    <section v-if="!profile">
+        <h3> GunDB demo </h3> <!-- login/register -->
 
         <form v-if="!profile">
             <input v-model="credentials.alias" placeholder="Username"
-                   type="text" autocomplete="username">
+                   type="text" autocomplete="username"> <br>
 
             <input v-model="credentials.password" placeholder="Password"
                    type="password" autocomplete="current-password">
 
-            <input value="Login"    type="button" @click="login()">
-            <input value="Register" type="button" @click="register()">
+            <p>
+                <input value="Login"    type="button" @click="login()">
+                <input value="Register" type="button" @click="register()">
+            </p>
+
         </form>
-
-        <input v-else value="Log out" type="button" @click="logout()">
-
     </section>
 
-    <section v-if="profile">
-        <h2> Profile </h2>
+    <section v-else>
+        <h3> Profile </h3> <!-- profile data -->
 
-        <!-- profile data -->
-
+        <input value="Logout" type="button" @click="logout()">
         <table>
-            <tr> <b> User </b> <td>             {{ profile.alias }} </td> </tr>
-            <tr> <b> UUID </b> <td class="key"> {{ profile.uuid }}  </td> </tr>
+            <tr> <th> Alias </th> <th> UUID </th> <th> Pub </th> </tr>
             <tr>
-                <b> Pub </b>
+                <td>             {{ profile.alias }} </td>
+                <td class="key"> {{ profile.uuid }}  </td>
                 <td>
                     <input id="principal-pub" :value="profile.pub"
                            type="text" readonly="true" class="key">
@@ -39,19 +38,16 @@
             </tr>
         </table>
 
-        <h4> Channels </h4>
-
+        <h3> Channels </h3> <!-- profile channels -->
         <form>
             <input v-model="newChannelName" placeholder="Name" type="text">
-            <input value="Create channel" type="button" @click="addChannel()">
+            <input value="Create" type="button" @click="addChannel()">
         </form>
 
         <form>
             <input v-model="joinChannelPub" placeholder="Pub" type="text">
-            <input value="Join channel" type="button" @click="joinChannel()">
+            <input value="Join" type="button" @click="joinChannel()">
         </form> <br>
-
-        <!-- channel data -->
 
         <table>
             <tr>
@@ -85,38 +81,36 @@
                            @click="copy(`#channel-${ index }-pub`)">
                 </td>
             </tr>
+
         </table>
-
-        <!-- channel model -->
-
-        <div v-if="showChannel" class="modal" @click="showChannel = false">
-            <section @click="$event.stopPropagation()">
-
-                <h2> #{{ curChannel.name }} </h2>
-
-                <table>
-                    <tr> <th> Key </th> <th> Value </th> </tr>
-                    <tr v-for="(val, key) in contents[curChannel.pub]" :key="key">
-
-                        <td> {{ key }} </td>
-                        <td> {{ val }} </td>
-                    </tr>
-                </table> <br>
-
-                <form>
-                    <input v-model="writePath" placeholder="Path" type="text">
-                    <input v-model="writeData" placeholder="Data" type="text">
-
-                    <input value="Write" type="button" @click="writeChannel()">
-                </form>
-
-            </section>
-        </div>
-
     </section>
 
+    <!-- channel modal -->
+    <div v-if="showChannel" class="modal" @click="showChannel = false">
+        <section @click="$event.stopPropagation()">
+
+            <h2> #{{ curChannel.name }} </h2> <!-- channel data -->
+            <table>
+                <tr> <th> Key </th> <th> Value </th> </tr>
+                <tr v-for="(val, key) in contents[curChannel.pub]" :key="key">
+
+                    <td> {{ key }} </td>
+                    <td> {{ val }} </td>
+                </tr>
+            </table> <br>
+
+            <form>
+                <input v-model="writePath" placeholder="Path" type="text">
+                <input v-model="writeData" placeholder="Data" type="text">
+
+                <input value="Write" type="button" @click="writeChannel()">
+            </form>
+
+        </section>
+    </div>
+
     <footer>
-        <h2> Debug </h2>
+        <h3> Debug </h3> <!-- debug data -->
         <input value="Reconnect peers" type="button" @click="reconnect()">
         <input value="Clear storage"   type="button" @click="clearStorage()">
         <span> {{ storage }} </span>
@@ -248,5 +242,5 @@ export default {
     th, td { text-align: left; padding-right: 1ch; }
 
     footer { position: fixed; bottom: 0; }
-    footer > h2 { display: inline-block; }
+    h3 { display: inline-block; }
 </style>

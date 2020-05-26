@@ -11,8 +11,8 @@ import store from '../store/index';
 const SEA = Gun.SEA;
 if (process.env.MODE === 'development') { SEA.throw = true; }
 
-// warn if enabling WebRTC for multiple peers
-let enabledRTC = false;
+let enabledRTC = false; // warn if enabling WebRTC for multiple peers
+const useAxe = JSON.parse(process.env.AXE) || false;
 
 // configure channel request handler to load tokens from vuex
 // wrap getter function (store uses gun-adapter which depends on this module)
@@ -127,9 +127,11 @@ Gun.prototype.addPeer = function(url) {
  */
 export const GunPeer = ({ name = '', peers = [], useRTC = false }) => {
     console.info(`starting gun peer "${ name }"`);
-
     if (useRTC) { // enable automatic peer signaling and discovery
-        console.info('enabling WebRTC'); require('gun/lib/webrtc');
+
+        if (useAxe) {
+            console.info('enabling AXE');    require('gun/axe');
+        }   console.info('enabling WebRTC'); require('gun/lib/webrtc');
 
         if (!enabledRTC) { enabledRTC = true; }
         else { console.warn('multiple WebRTC peers - expect problems'); }

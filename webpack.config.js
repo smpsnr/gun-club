@@ -66,7 +66,7 @@ const config = (local, sw, mode) => ({
             use : [ 'vue-style-loader', 'css-loader' ]
         }],
 
-        noParse: /node_modules\/gun\/(gun|sea)\.js$/ // see https://git.io/Jv2K2
+        noParse: /node_modules\/gun\/(gun|sea|axe)\.js$/ // see https://git.io/Jv2K2
     },
 
     plugins: [

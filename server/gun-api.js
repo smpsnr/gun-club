@@ -1,6 +1,6 @@
-import Gun from 'gun';
+import Gun from 'gun/gun.js';
 
-import 'gun/sea.js';
+import 'gun/nts.js'; import 'gun/sea.js';
 import 'gun/lib/path.js';
 
 const SEA = Gun.SEA;

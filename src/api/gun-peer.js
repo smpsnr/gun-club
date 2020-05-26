@@ -138,7 +138,7 @@ export const GunPeer = ({ name = '', peers = [], useRTC = false }) => {
     }
 
     return new (/**@type {import('types').Gun}*/(/**@type {any}*/ (Gun)))({
-        peers: peers, file: name,
+        peers: peers, file: name, retry: Infinity,
         localStorage: false, indexedDB: true
     });
 };

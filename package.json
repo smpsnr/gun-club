@@ -16,6 +16,7 @@
         "babel-eslint": "^10.0.3",
         "babel-loader": "^8.0.6",
         "clean-webpack-plugin": "^3.0.0",
+        "copy-webpack-plugin": "^6.0.2",
         "css-loader": "^3.5.3",
         "dotenv-webpack": "^1.7.0",
         "eslint": "^6.8.0",
@@ -38,6 +39,7 @@
         "gun": "0.2020.514",
         "gun-api": "file:server",
         "minimist": "^1.2.5",
+        "olm": "https://packages.matrix.org/npm/olm/olm-3.1.4.tgz",
         "vue": "^2.6.11",
         "vuex": "^3.3.0"
     }

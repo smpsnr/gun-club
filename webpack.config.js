@@ -2,6 +2,7 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const { VueLoaderPlugin }    = require('vue-loader');
 
 const DotenvWebpackPlugin    = require('dotenv-webpack');
+const CopyPlugin             = require('copy-webpack-plugin');
 
 const HtmlWebpackPlugin      = require('html-webpack-plugin');
 const InlineSourcePlugin     = require('html-webpack-inline-source-plugin');
@@ -72,6 +73,10 @@ const config = (local, sw, mode) => ({
     plugins: [
         ...(local ? [ // dev server only
             new CleanWebpackPlugin() ] : []),
+
+        new CopyPlugin({ // copy wasm file to output
+            patterns: [{ from: rootPath('node_modules', 'olm', 'olm.wasm') }]
+        }),
 
         new webpack.DefinePlugin({
             'process.env': { MODE: JSON.stringify(mode) }

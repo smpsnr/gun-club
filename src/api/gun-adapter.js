@@ -324,14 +324,14 @@ const readChannel = (pub, path, cb) => {
 
 /**
  * Find user by public key
- * @param { string } pub - public key of user
+ * @param { string } userPub - public key of user
  */
-const findUser = async pub => {
-    const to = peers.user.user(pub);
+const findUser = async userPub => {
+    const to = peers.user.user(userPub);
     if (!to) { throw new Error('no such user'); }
 
     const foundUser = {
-        pub  : pub,
+        pub  : userPub,
         epub : await to.get('epub').then(),
         alias: await to.get('alias').then()
 
@@ -343,8 +343,58 @@ const findUser = async pub => {
     return { uuid, ...foundUser };
 };
 
+const chats = cb => {
+    const chats = user.get('chats');
+    chats.map().once(async (val, key) => {
+
+        const pub = await chats.getOwnSecret(key);
+        if (!pub) { console.error('error getting chat pub'); return; }
+
+        findUser(pub).then(chatUser => cb(chatUser))
+            .catch(e => console.log(e.message));
+    });
+};
+
+const startChat = (uuid, pub) => {
+    user.get('chats').get(uuid).secret(pub);
+};
+
+const messages = async (userPub, cb) => {
+
+    const from = peers.user.user(userPub);
+    if (!from) { throw new Error('no such user'); }
+
+    const pair     = user._.sea;
+    const messages = from.get('messages').get(principal.uuid);
+
+    messages.map().once(async (val, key) => {
+        console.info(key, val);
+
+        const msg = await messages.getSecret(key, pair);
+        console.log(msg);
+        cb({ time: key, msg });
+    });
+};
+
+const sendMessage = async (userPub, message) => {
+    const to = peers.user.user(userPub);
+    if (!to) { throw new Error('no such user'); }
+
+    const uuid = await utils.hash({
+        pub  : userPub,
+        epub : await to.get('epub').then(),
+        alias: await to.get('alias').then()
+
+    }); if (!uuid) { throw new Error('error getting UUID of target user'); }
+
+    const now = new Date().getTime();
+
+    await user.get('messages').get(uuid).get(now).secret(message).then();
+    await user.get('messages').get(uuid).get(now).grant(to).then();
+};
+
 export default {
     login, register, logout, reconnect, channels, peerEvents,
     addChannel, shareChannel, joinChannel, writeChannel, readChannel,
-    findUser
+    findUser, chats, startChat, messages, sendMessage
 };

@@ -9,3 +9,6 @@ export const WRITE_CHANNEL = 'WRITE_CHANNEL';
 export const READ_CHANNEL  = 'READ_CHANNEL';
 export const RECONNECT     = 'RECONNECT';
 export const FIND_USER     = 'FIND_USER';
+export const START_CHAT    = 'START_CHAT';
+export const WRITE_CHAT    = 'WRITE_CHAT';
+export const READ_CHAT     = 'READ_CHAT';

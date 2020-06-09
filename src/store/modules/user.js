@@ -3,13 +3,14 @@ import client from 'api/gun-adapter';
 
 import { INIT, REGISTER, LOGIN, LOGOUT, RECONNECT,
     ADD_CHANNEL, SHARE_CHANNEL, JOIN_CHANNEL, WRITE_CHANNEL, READ_CHANNEL,
-    FIND_USER
+    FIND_USER, START_CHAT, WRITE_CHAT, READ_CHAT
 } from 'store/actions/user';
 
 const state = {
     principal: null,
     channels     : [], peers   : [],
     channelsByKey: {}, contents: {},
+    chats        : [], messages: {}
 };
 
 const getters = {
@@ -39,6 +40,7 @@ const actions = {
 
                 commit('setPrincipal', user);
                 client.channels(channel => commit('addChannel', channel));
+                client.chats   (chat    => commit('addChat',    chat));
             });
 
         } catch(error) { console.error(error); }
@@ -64,7 +66,14 @@ const actions = {
 
     [FIND_USER]: (_, pub) => new Promise(resolve =>
         client.findUser(pub).then(user => resolve(user))
-            .catch(e => console.log(e.message)))
+            .catch(e => console.log(e.message))),
+
+    [START_CHAT]: (_, partner) => client.startChat(partner.uuid, partner.pub),
+
+    [WRITE_CHAT]: (_, { pub, data }) => client.sendMessage(pub, data),
+
+    [READ_CHAT]: ({ commit }, pub) => client.messages(pub, newMessage =>
+        commit('addMessage', { pub, newMessage }))
 };
 
 const mutations = {
@@ -95,6 +104,16 @@ const mutations = {
 
         if (!curContent) { Vue.set(state.contents, pub, newContent); }
         else             { state.contents[pub] = merge(curContent, newContent); }
+    },
+
+    addMessage: (state, { pub, newMessage }) => {
+        const curMessages = state.messages[pub];
+        if (!curMessages) { Vue.set(state.messages, pub, [newMessage]); }
+        else              { curMessages.push(newMessage); }
+    },
+
+    addChat: (state, chat) => {
+        state.chats.push(chat);
     },
 
     updatePeers: (state, event) => {

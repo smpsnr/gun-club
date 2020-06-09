@@ -7,8 +7,9 @@
         <input value="Search" type="button" @click="findUser()">
     </form>
     <form>
-        <input v-model="newUser" type="text" readonly>
-        <input value="New" type="button" @click="newMsg()" :disabled="newUser">
+        <input v-model="newUser.alias" type="text" readonly>
+        <input value="New" type="button"
+               @click="newMessage()" :disabled="!newUser.alias">
     </form> <br>
 
     <table>
@@ -17,7 +18,8 @@
 
             <td> {{ user.alias }} </td>
             <td>
-                <input value="Open" type="button" @click="openMsgModal(user)">
+                <input value="Open" type="button"
+                       @click="openMessageModal(user)">
             </td>
             <td>
                 <input :id="`user-${ index }-pub`" :value="user.pub"
@@ -34,20 +36,30 @@
 </template>
 
 <script>
+
+import { FIND_USER
+} from 'store/actions/user';
+
 export default {
     name: 'Messages',
 
     data: () => ({
-        newPub: '', newUser: '',
+        newPub: '', newUser: {},
         users: [{ alias: 'test', pub: 'xyz' }]
     }),
 
     methods: {
         findUser() {
+            this.newUser = {};
+            this.$store.dispatch(FIND_USER, this.newPub)
+                .then(user => this.newUser = user);
+        },
+
+        newMessage() {
 
         },
 
-        newMsg() {
+        openMessageModal(user) {
 
         },
 

@@ -322,7 +322,29 @@ const readChannel = (pub, path, cb) => {
     });
 };
 
+/**
+ * Find user by public key
+ * @param { string } pub - public key of user
+ */
+const findUser = async pub => {
+    const to = peers.user.user(pub);
+    if (!to) { throw new Error('no such user'); }
+
+    const foundUser = {
+        pub  : pub,
+        epub : await to.get('epub').then(),
+        alias: await to.get('alias').then()
+
+    }; if (!foundUser.alias) { throw new Error('no such user'); }
+
+    const uuid = await utils.hash(foundUser);
+    if (!uuid) { throw new Error('error getting UUID of target user'); }
+
+    return { uuid, ...foundUser };
+};
+
 export default {
     login, register, logout, reconnect, channels, peerEvents,
-    addChannel, shareChannel, joinChannel, writeChannel, readChannel
+    addChannel, shareChannel, joinChannel, writeChannel, readChannel,
+    findUser
 };

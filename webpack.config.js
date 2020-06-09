@@ -45,7 +45,10 @@ const config = (local, sw, mode) => ({
         extensions: [ '.js', '.vue' ],
         alias     : {
             'vue$': 'vue/dist/vue.esm.js',
-            'api' : srcPath('api'), 'store': srcPath('store'),
+
+            'api'      : srcPath('api'),
+            'component': srcPath('component'),
+            'store'    : srcPath('store'),
         },
     },
 

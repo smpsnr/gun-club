@@ -1,3 +1,4 @@
+import Vue    from 'vue';
 import client from 'api/gun-adapter';
 
 import { INIT, REGISTER, LOGIN, LOGOUT, RECONNECT,
@@ -87,7 +88,7 @@ const mutations = {
             }); return { ...cur, ...src };
         };
 
-        if (!curContent) { state.contents[pub] = newContent; }
+        if (!curContent) { Vue.set(state.contents, pub, newContent); }
         else             { state.contents[pub] = merge(curContent, newContent); }
     },
 

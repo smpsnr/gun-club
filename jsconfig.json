@@ -3,8 +3,9 @@
         "baseUrl": ".",
 
         "paths": {
-            "api/*"  : [ "src/api/*"   ],
-            "store/*": [ "src/store/*" ],
+            "api/*"      : [ "src/api/*"       ],
+            "component/*": [ "src/component/*" ],
+            "store/*"    : [ "src/store/*"     ],
         },
 
         "checkJs"                     : true,

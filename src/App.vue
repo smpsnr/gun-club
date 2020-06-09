@@ -37,7 +37,10 @@
             </tr>
         </table>
 
-        <Channels />
+        <div class="columns">
+            <Channels />
+            <Messages />
+        </div>
 
     </section>
 
@@ -74,10 +77,11 @@ import { INIT, REGISTER, LOGIN, LOGOUT, RECONNECT
 } from 'store/actions/user';
 
 import Channels from 'component/Channels.vue';
+import Messages from 'component/Messages.vue';
 
 export default {
     name: 'App',
-    components: { Channels },
+    components: { Channels, Messages },
 
     data: () => ({
         credentials: { alias: '', password: '' },
@@ -138,7 +142,11 @@ export default {
 </script>
 
 <style>
-    .key   { overflow: hidden; text-overflow: ellipsis; max-width: 8ch; }
+    .key { overflow: hidden; text-overflow: ellipsis; max-width: 8ch; }
+
+    .columns     { display: flex; }
+    .columns div { padding-right: 1ch; }
+
     .modal {
         position: fixed;
 

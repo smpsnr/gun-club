@@ -123,9 +123,10 @@ Gun.prototype.addPeer = function(url) {
 
 /**
  * Returns a new Gun instance
- * @param {{ name?: String, peers?: Array<String>, useRTC?: boolean }} [_]
  */
-export const GunPeer = ({ name = '', peers = [], useRTC = false }) => {
+export const GunPeer = (
+    { useStorage = true, peers = [], useRTC = false } = {}) => {
+
     console.info(`starting gun peer "${ name }"`);
     if (useRTC) { // enable automatic peer signaling and discovery
 
@@ -138,8 +139,8 @@ export const GunPeer = ({ name = '', peers = [], useRTC = false }) => {
     }
 
     return new (/**@type {import('types').Gun}*/(/**@type {any}*/ (Gun)))({
-        peers: peers, file: name, retry: Infinity,
-        localStorage: false, indexedDB: true
+        peers: peers, file: '', retry: Infinity,
+        localStorage: false, indexedDB: true, radisk: useStorage
     });
 };
 

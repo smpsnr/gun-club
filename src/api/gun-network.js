@@ -13,8 +13,8 @@ const relay = `${ location.protocol }//${ location.hostname }:${ port }/gun`;
 function join() {
     const peers = { // create internal 'user' and 'group' nodes
 
-        user : GunPeer({ name: 'user' }), // enable group to find WebRTC peers
-        group: GunPeer({ name: 'group',      useRTC: true })
+        user : GunPeer(), // enable group to find WebRTC peers
+        group: GunPeer({ useStorage: false, useRTC: true })
 
     }; // route internal nodes
 

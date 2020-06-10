@@ -1,10 +1,11 @@
 import Gun             from './gun-api.js';
 import * as GunChannel from './gun-channel.js';
 
-import 'gun/lib/store.js'; import 'gun/lib/wire.js';
-import 'gun/axe.js';       import 'gun/lib/multicast.js';
+import 'gun/lib/store.js'; import 'gun/lib/rfs.js';
+import 'gun/lib/wire.js';  import 'gun/lib/evict.js';
 
-import 'gun/lib/evict.js';
+import 'gun/axe.js';
+import 'gun/lib/multicast.js';
 
 import express from 'express'; import https from 'https';
 import path    from 'path';    import fs    from 'fs';

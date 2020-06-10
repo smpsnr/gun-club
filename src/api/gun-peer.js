@@ -20,7 +20,25 @@ const useAxe = JSON.parse(process.env.AXE) || false;
 const handleOutgoing = buildOutgoingHandler(
     channel => store.getters.getChannelByKey(channel));
 
-Gun.on('opt', handleOutgoing);
+/* Gun.on('opt', handleOutgoing); */
+
+Gun.on('opt', function(at) {
+    console.info('this', this);
+    console.info('at', at);
+
+    at.on('out', function(msg) {
+        //console.info(msg);
+
+        if (msg.headers && msg.headers.group) {
+            //console.info('wjeee');
+            //this.to.the.last.next(msg);
+            this.to.next(msg);
+        } else {
+            this.to.next(msg);
+        }
+
+    });
+});
 
 /**
  * @param each - called for each item with (val, key)

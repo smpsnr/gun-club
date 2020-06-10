@@ -11,41 +11,37 @@ const port  = process.env.PORT || 8765;
 const relay = `${ location.protocol }//${ location.hostname }:${ port }/gun`;
 
 function join() {
+
     const peers = { // create internal 'user' and 'group' nodes
 
-        user : GunPeer(), // enable group to find WebRTC peers
-        group: GunPeer({ useStorage: false, useRTC: true })
+        user : GunPeer({ peers: [relay] }), // enable group to find WebRTC peers
+        group: GunPeer({  useRTC: true })
 
     }; // route internal nodes
 
-    peers.user.on('in', function(msg) {
-        this.to.next(msg); peers.group.on('in', msg);
+    peers.group.on('out', function(req) {
+        this.to.next(req);
+
+        if (req.put || req.get) {
+            peers.user.on('out', req);
+        }
     });
 
-    peers.group.on('out', function(msg) {
-        this.to.next(msg); peers.user.on('out', msg);
+    peers.user.on('in', function(req) {
+        peers.group.on('in', req);
+        this.to.next(req);
     });
 
-    /* peers.group.on('put', function(request) {
-        this.to.next(request);
+ /*    peers.user.on('out', function(req) {
+        if (req.headers && req.headers.group) {
 
-        peers.user.on('out', request);
-        //peers.group.on('in', { '@': request['#'] });
-    });
-
-    peers.group.on('get', function(request) {
-        this.to.next(request);
-
-        peers.user.on('out', request);
-        //peers.group.on('in', { '@': request['#'] });
+            console.log('skipping double sea');
+            delete req.headers.group; this.the.last.next(req);
+        }
+        else { this.to.next(req); }
     }); */
 
-    peers.group.connectInstance(peers.user); // connect user & group directly
-    peers.user .connectInstance(peers.group);
-
-    // join network by connecting user to relay via WebSocket
-
-    peers.user.addPeer(relay); return peers;
+    /* peers.user.addPeer(relay); */ return peers;
 }
 
 /* function logRoutes() {

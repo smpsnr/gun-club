@@ -18,6 +18,28 @@ function join() {
 
     }; // route internal nodes
 
+    peers.user.on('in', function(msg) {
+        this.to.next(msg); peers.group.on('in', msg);
+    });
+
+    peers.group.on('out', function(msg) {
+        this.to.next(msg); peers.user.on('out', msg);
+    });
+
+    /* peers.group.on('put', function(request) {
+        this.to.next(request);
+
+        peers.user.on('out', request);
+        //peers.group.on('in', { '@': request['#'] });
+    });
+
+    peers.group.on('get', function(request) {
+        this.to.next(request);
+
+        peers.user.on('out', request);
+        //peers.group.on('in', { '@': request['#'] });
+    }); */
+
     peers.group.connectInstance(peers.user); // connect user & group directly
     peers.user .connectInstance(peers.group);
 

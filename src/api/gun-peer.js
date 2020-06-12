@@ -1,24 +1,20 @@
 import Gun                      from 'gun-api';
 import { buildOutgoingHandler } from 'gun-api/gun-channel';
 
-//import 'gun/axe';
-
 // enable RAD storage adapter backed by IndexedDB
 import 'gun/lib/radix'; import 'gun/lib/radisk';
 import 'gun/lib/store'; import 'gun/lib/rindexed';
 
+if (JSON.parse(process.env.AXE)) {
+    console.info('enabling AXE'); require('gun/axe');
 
-import 'gun/lib/webrtc';
-
+} import 'gun/lib/webrtc';
 
 //! vuex dependency is circular - see below
 import store from '../store/index';
 
 const SEA = Gun.SEA;
 if (process.env.MODE === 'development') { SEA.throw = true; }
-
-let enabledRTC = false; // warn if enabling WebRTC for multiple peers
-const useAxe = JSON.parse(process.env.AXE) || false;
 
 // configure channel request handler to load tokens from vuex
 // wrap getter function (store uses gun-adapter which depends on this module)
@@ -113,9 +109,8 @@ Gun.prototype.loadPathsAt = async function(at) {
  */
 Gun.prototype.connectInstance = function(otherGun) {
     return this.on('out', function(msg) {
-
-        otherGun.on('in', msg);
         this.to.next(msg);
+        otherGun.on('in', msg);
     });
 };
 
@@ -131,18 +126,7 @@ Gun.prototype.addPeer = function(url) {
  * Returns a new Gun instance
  */
 export const GunPeer = (
-    { useStorage = true, peers = [], useRTC = false } = {}) => {
-
-    console.info(`starting gun peer "${ name }"`);
-    /* if (useRTC) { // enable automatic peer signaling and discovery
-
-        if (useAxe) {
-            console.info('enabling AXE');    require('gun/axe');
-        }   console.info('enabling WebRTC'); require('gun/lib/webrtc');
-
-        if (!enabledRTC) { enabledRTC = true; }
-        else { console.warn('multiple WebRTC peers - expect problems'); }
-    } */
+    { useStorage = true, peers = [] } = {}) => {
 
     return new (/**@type {import('types').Gun}*/(/**@type {any}*/ (Gun)))({
         peers: peers, file: '', retry: Infinity,

@@ -12,7 +12,7 @@ const relay = `${ location.protocol }//${ location.hostname }:${ port }/gun`;
 
 function join() {
 
-    const server = GunPeer({ peers: [relay ] });
+    const server = GunPeer({ peers: [ relay ] });
 
     const peers = { // create internal 'user' and 'group' nodes
 
@@ -21,38 +21,33 @@ function join() {
 
     }; // route internal nodes
 
-    const e1 = server.connectInstance(peers.user);
-    const e2 = peers.user.connectInstance(server);
+    function connectServerUser() {
+        const e1 = server.    connectInstance(peers.user);
+        const e2 = peers.user.connectInstance(server);
 
-    peers.user._.opt.announce();
-    e1.off(); e2.off();
+        peers.user._.opt.announce(); e1.off(); e2.off();
+    }
 
-    setTimeout(function() {
-
-
+    function connectServerGroup() {
         const e3 = server.connectInstance(peers.group);
         const e4 = peers.group.connectInstance(server);
-        console.info('sdfsdf');
-        peers.group._.opt.announce();
-        e3.off(); e4.off();
-    }, 5000);
 
+        peers.group._.opt.announce(); e3.off(); e4.off();
+    }
 
+    connectServerUser();
 
-    /* const e5 = peers.group.connectInstance(peers.user);
-    const e6 = peers.user.connectInstance(peers.group); */
+    peers.user.on('hi', function(peer) {
+        console.info('user internal'); this.to.next(peer);
+        this.off(); connectServerGroup();
+    });
 
+    peers.group.on('hi', function(peer) {
+        console.info('group internal'); this.to.next(peer);
+        this.off(); //server.addPeer(relay);
+    });
 
-    //peers.group._.opt.peers = peers.user._.opt.peers;
-
-    //e1.off(); e2.off(); e3.off(); e4.off();
-
-    console.info(server);
-    console.info(peers);
-
-    // join network by connecting user to relay via WebSocket
-
-    /* peers.user.addPeer(relay); */ return peers;
+    console.info(server); console.info(peers); return peers;
 }
 
 /* function logRoutes() {

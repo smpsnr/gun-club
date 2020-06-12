@@ -78,11 +78,16 @@ const reconnect = () => {
  * @param { function(Object):Object } cb - callback to run for each peer event
  */
 const peerEvents = cb => {
-    peers.user .on('hi',  peer => cb({ type: 'hi',  peerId: peer.id }));
-    peers.user .on('bye', peer => cb({ type: 'bye', peerId: peer.id }));
 
-    peers.group.on('hi',  peer => cb({ type: 'hi',  peerId: peer.id }));
-    peers.group.on('bye', peer => cb({ type: 'bye', peerId: peer.id }));
+    const log = function(ctx, peer, type) {
+        ctx.to.next(peer); cb({ type,  peerId: peer.id });
+    };
+
+    peers.user .on('hi',  function(peer) { log(this, peer, 'hi'); });
+    peers.user .on('bye', function(peer) { log(this, peer, 'bye'); });
+
+    peers.group.on('hi',  function(peer) { log(this, peer, 'hi'); });
+    peers.group.on('bye', function(peer) { log(this, peer, 'bye'); });
 };
 
 /**

@@ -11,41 +11,48 @@ const port  = process.env.PORT || 8765;
 const relay = `${ location.protocol }//${ location.hostname }:${ port }/gun`;
 
 function join() {
+
+    const server = GunPeer({ peers: [relay ] });
+
     const peers = { // create internal 'user' and 'group' nodes
 
-        user : GunPeer(), // enable group to find WebRTC peers
-        group: GunPeer({ useStorage: false, useRTC: true })
+        user : GunPeer({ useStorage: false }), // enable group to find WebRTC peers
+        group: GunPeer({ useStorage: false })
 
     }; // route internal nodes
 
-    peers.user.on('in', function(msg) {
-        this.to.next(msg); peers.group.on('in', msg);
-    });
+    const e1 = server.connectInstance(peers.user);
+    const e2 = peers.user.connectInstance(server);
 
-    peers.group.on('out', function(msg) {
-        this.to.next(msg); peers.user.on('out', msg);
-    });
+    peers.user._.opt.announce();
+    e1.off(); e2.off();
 
-    /* peers.group.on('put', function(request) {
-        this.to.next(request);
+    setTimeout(function() {
 
-        peers.user.on('out', request);
-        //peers.group.on('in', { '@': request['#'] });
-    });
 
-    peers.group.on('get', function(request) {
-        this.to.next(request);
+        const e3 = server.connectInstance(peers.group);
+        const e4 = peers.group.connectInstance(server);
+        console.info('sdfsdf');
+        peers.group._.opt.announce();
+        e3.off(); e4.off();
+    }, 5000);
 
-        peers.user.on('out', request);
-        //peers.group.on('in', { '@': request['#'] });
-    }); */
 
-    peers.group.connectInstance(peers.user); // connect user & group directly
-    peers.user .connectInstance(peers.group);
+
+    /* const e5 = peers.group.connectInstance(peers.user);
+    const e6 = peers.user.connectInstance(peers.group); */
+
+
+    //peers.group._.opt.peers = peers.user._.opt.peers;
+
+    //e1.off(); e2.off(); e3.off(); e4.off();
+
+    console.info(server);
+    console.info(peers);
 
     // join network by connecting user to relay via WebSocket
 
-    peers.user.addPeer(relay); return peers;
+    /* peers.user.addPeer(relay); */ return peers;
 }
 
 /* function logRoutes() {

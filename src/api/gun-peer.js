@@ -1,9 +1,15 @@
 import Gun                      from 'gun-api';
 import { buildOutgoingHandler } from 'gun-api/gun-channel';
 
+//import 'gun/axe';
+
 // enable RAD storage adapter backed by IndexedDB
 import 'gun/lib/radix'; import 'gun/lib/radisk';
 import 'gun/lib/store'; import 'gun/lib/rindexed';
+
+
+import 'gun/lib/webrtc';
+
 
 //! vuex dependency is circular - see below
 import store from '../store/index';
@@ -106,7 +112,7 @@ Gun.prototype.loadPathsAt = async function(at) {
  * @param { import('types').GunRef } otherGun
  */
 Gun.prototype.connectInstance = function(otherGun) {
-    this.on('out', function(msg) {
+    return this.on('out', function(msg) {
 
         otherGun.on('in', msg);
         this.to.next(msg);
@@ -128,7 +134,7 @@ export const GunPeer = (
     { useStorage = true, peers = [], useRTC = false } = {}) => {
 
     console.info(`starting gun peer "${ name }"`);
-    if (useRTC) { // enable automatic peer signaling and discovery
+    /* if (useRTC) { // enable automatic peer signaling and discovery
 
         if (useAxe) {
             console.info('enabling AXE');    require('gun/axe');
@@ -136,7 +142,7 @@ export const GunPeer = (
 
         if (!enabledRTC) { enabledRTC = true; }
         else { console.warn('multiple WebRTC peers - expect problems'); }
-    }
+    } */
 
     return new (/**@type {import('types').Gun}*/(/**@type {any}*/ (Gun)))({
         peers: peers, file: '', retry: Infinity,

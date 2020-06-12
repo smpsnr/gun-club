@@ -79,15 +79,14 @@ const reconnect = () => {
  */
 const peerEvents = cb => {
 
-    const log = function(ctx, peer, type) {
-        ctx.to.next(peer); cb({ type,  peerId: peer.id });
+    const log = function(ctx, peer, node, type) {
+        ctx.to.next(peer); cb({ type,  node, peerId: peer.id });
     };
 
-    peers.user .on('hi',  function(peer) { log(this, peer, 'hi'); });
-    peers.user .on('bye', function(peer) { log(this, peer, 'bye'); });
-
-    peers.group.on('hi',  function(peer) { log(this, peer, 'hi'); });
-    peers.group.on('bye', function(peer) { log(this, peer, 'bye'); });
+    for (const [name, node] of Object.entries(peers)) {
+        node.on('hi',  function(peer) { log(this, peer, name, 'hi'); });
+        node.on('bye', function(peer) { log(this, peer, name, 'bye'); });
+    }
 };
 
 /**

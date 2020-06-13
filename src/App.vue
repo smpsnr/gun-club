@@ -51,7 +51,7 @@
                 <th> Peers              </th>
                 <td> {{ peers.length }} </td>
                 <td>
-                    <input value="Reconnect" type="button"
+                    <input value="Reconfigure mesh" type="button"
                            @click="reconnect()">
                 </td>
             </tr>
@@ -60,7 +60,10 @@
                 <td> {{ storage }} </td>
                 <td>
                     <input value="Clear" type="button"
-                           @click="clearStorage()" :disabled="clearNum > 0">
+                           @click="clearStorage()" :disabled="clearing">
+
+                    <input :value="persist" type="button"
+                           @click="persistStorage()" :disabled="!canPersist">
                 </td>
             </tr>
 
@@ -85,7 +88,7 @@ export default {
 
     data: () => ({
         credentials: { alias: '', password: '' },
-        storage: '', clearNum: 0
+        storage: '', persist: '', clearing: false, canPersist: false
     }),
 
     computed: mapState({
@@ -107,9 +110,17 @@ export default {
 
             const quota = Math.round(space.quota / mega);
             this.storage = `${ usage } used out of ${ quota } MB`;
+        });
 
-        }); checkStorage();
-        setInterval(checkStorage, 1000);
+        if ('storage' in navigator && 'estimate' in navigator.storage) {
+            checkStorage(); setInterval(checkStorage, 1000);
+
+        } else { this.storage = 'quota unavailable'; }
+
+        if ('storage' in navigator && 'persist' in navigator.storage) {
+            navigator.storage.persisted().then(this.updatePersistence);
+
+        } else { this.persist = 'persistence unavailable'; }
     },
 
     methods: {
@@ -121,7 +132,18 @@ export default {
 
         clearStorage() {
             const req = indexedDB.deleteDatabase('radata');
-            req.onsuccess = () => { console.info('deleted radata'); };
+            this.clearing = true; req.onsuccess = () => {
+                console.debug('deleted radata'); this.clearing = false;
+            };
+        },
+
+        persistStorage() {
+            navigator.storage.persist().then(this.updatePersistence);
+        },
+
+        updatePersistence(p) {
+            this.canPersist = !p; if (p) { this.persist = 'persistent'; }
+            else                         { this.persist = 'Persist'; }
         },
 
         copy(id) {

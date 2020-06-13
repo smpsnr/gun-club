@@ -6,11 +6,14 @@ import * as utils      from 'api/gun-utils';
 
 import network         from 'api/gun-network';
 
+const port  = process.env.PORT || 8765;
+const relay = `${ location.protocol }//${ location.hostname }:${ port }/gun`;
+
+const peers = network.join(relay);
+const user  = peers.user.user();
+
 const lock = new AsyncLock();
 let principal = {};
-
-const peers = network.join();
-const user  = peers.user.user();
 
 /**
  * Authenticate and set principal user

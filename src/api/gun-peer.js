@@ -107,19 +107,19 @@ Gun.prototype.loadPathsAt = async function(at) {
 export const GunPeer = (
     { name = '', useStorage = true, useRTC = false, peers = [] } = {}) => {
 
-    console.info(`starting gun peer "${ name }"`);
     if (useRTC) { // enable automatic peer signaling and discovery
-
         if (useAxe) {
             console.info('enabling AXE');    require('gun/axe');
         }   console.info('enabling WebRTC'); require('gun/lib/webrtc');
 
         if (!enabledRTC) { enabledRTC = true; }
         else { console.warn('multiple WebRTC peers - expect problems'); }
-    }
 
-    return new (/**@type {import('types').Gun}*/(/**@type {any}*/ (Gun)))({
-        peers: peers, file: '', retry: Infinity, name,
+    }                           console.info('creating Gun node', name);
+    for (const peer of peers) { console.info('connecting peer', peer); }
+
+    return new Gun({
+        peers: peers, retry: Infinity, name,
         localStorage: false, indexedDB: true, radisk: useStorage
     });
 };

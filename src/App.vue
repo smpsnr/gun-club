@@ -120,16 +120,8 @@ export default {
         reconnect() { this.$store.dispatch(RECONNECT); },
 
         clearStorage() {
-            for (let name of [ 'user', 'group' ]) {
-                const req = indexedDB.deleteDatabase(name);   this.clearNum++;
-
-                req.onsuccess = () => {
-                    console.info(`deleted ${ name }`);        this.clearNum--;
-
-                }; req.onerror = () => {
-                    console.warn(`error deleting ${ name }`); this.clearNum--;
-                };
-            }
+            const req = indexedDB.deleteDatabase('radata');
+            req.onsuccess = () => { console.info('deleted radata'); };
         },
 
         copy(id) {

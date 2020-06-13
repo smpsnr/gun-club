@@ -69,11 +69,11 @@ const register = ({ alias, password }, cb) => {
 const logout = () => { user.leave(); reconnect(); };
 
 const reconnect = () => {
-    for (const peer in peers.user ._.opt.peers) { peers.user .on('bye', peer); }
-    for (const peer in peers.group._.opt.peers) { peers.group.on('bye', peer); }
+    for (const [id, peer] of Object.entries(peers.router._.opt.peers)) {
+        if (!peer.local) { peers.router.on('bye', id); }
 
-    //peers.user .on('out', { get: { '#': { '*': '' } } });
-    //peers.group.on('out', { get: { '#': { '*': '' } } });
+    } // retry WebRTC peering
+    setTimeout(() => peers.router._.opt.announce(), 5000);
 };
 
 /**
@@ -82,14 +82,13 @@ const reconnect = () => {
  */
 const peerEvents = cb => {
 
-    const log = function(ctx, peer, node, type) {
-        ctx.to.next(peer); cb({ type,  node, peerId: peer.id });
+    const log = function(ctx, peer, type) {
+        ctx.to.next(peer);
+        if (!peer.local) { cb({ type, peerId: peer.id }); }
     };
 
-    for (const [name, node] of Object.entries(peers)) {
-        node.on('hi',  function(peer) { log(this, peer, name, 'hi'); });
-        node.on('bye', function(peer) { log(this, peer, name, 'bye'); });
-    }
+    peers.router.on('hi',  function(peer) { log(this, peer, 'hi'); });
+    peers.router.on('bye', function(peer) { log(this, peer, 'bye'); });
 };
 
 /**

@@ -120,15 +120,13 @@ const mutations = {
         switch(event.type) {
 
             case 'hi': {
-                console.debug(
-                    `${ event.node } %c 🉑 ${ event.peerId }`, 'color: green');
+                console.debug(`%c 🉑 ${ event.peerId }`, 'color: green');
                 state.peers.push(event.peerId);
             } break;
 
             case 'bye': {
-                console.debug(
-                    `${ event.node } %c ⭕ ${ event.peerId }`, 'color: red');
                 const idx = state.peers.indexOf(event.peerId); if (idx >= 0) {
+                    console.debug(`%c ⭕ ${ event.peerId }`, 'color: red');
                     state.peers.splice(idx, 1);
                 }
             } break;

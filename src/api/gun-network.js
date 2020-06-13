@@ -11,8 +11,11 @@ Gun.prototype.createLocalPeer = function(name) {
     const sendChannel = peer.createDataChannel(
         'dc', { ordered: false, maxRetransmits: 2 });
 
-    peer['id']   = name;
-    peer['wire'] = sendChannel;
+    // set Gun-specific properties
+    peer['id']    = name;
+    peer['wire']  = sendChannel;
+
+    peer['local'] = true; // stand out from other Gun peers
 
     sendChannel.onclose = () => mesh.bye(peer);
     sendChannel.onopen  = () => mesh.hi (peer);
@@ -84,6 +87,14 @@ function join(relay) {
 
     connectLocal(peers.router, peers.user);
     connectLocal(peers.router, peers.group);
+
+    let count = 2; peers.router.on('hi', function(peer) {
+        this.to.next(peer);
+
+        if (peer.local && --count === 0) { // count internal connections
+            console.debug('finished local routing'); this.off();
+        }
+    });
 
     return peers;
 }

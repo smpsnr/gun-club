@@ -1,23 +1,17 @@
-import Gun             from './gun-api.js';
-import * as GunChannel from './gun-channel.js';
+import Gun             from './gun-api';
+import * as GunChannel from './gun-channel';
 
-import 'gun/lib/store.js'; import 'gun/lib/rfs.js';
-import 'gun/lib/wire.js';  import 'gun/lib/evict.js';
+import 'gun/lib/store'; import 'gun/lib/rfs';
+import 'gun/lib/wire';  import 'gun/lib/evict';
 
-import 'gun/axe.js';
-import 'gun/lib/multicast.js';
+import 'gun/axe';
+import 'gun/lib/multicast';
 
 import express from 'express'; import https from 'https';
 import path    from 'path';    import fs    from 'fs';
 
-import minimist from 'minimist';
-const argv = minimist(process.argv.slice(2));
-
-//import { fileURLToPath } from 'url';
-//const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
 import dotenv from 'dotenv';
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
+dotenv.config(); // load .env
 
 const host = process.env.HOST || '0.0.0.0';
 const port = process.env.PORT || 8765;
@@ -27,10 +21,10 @@ const multicast = process.env.MULTICAST || false;
 
 // configure server
 
-const app = express();
-let server;
+const app = express(); let server;
+const mode = process.env.NODE_ENV;
 
-if (argv.mode === 'production') {
+if (mode === 'production') {
 
     server = https.createServer({
         key : fs.readFileSync(process.env.SSL_KEY),
@@ -50,11 +44,11 @@ console.info('\n', '\x1b[33m',
              `Starting relay peer on port ${ port } with /gun...`, '\x1b[0m\n');
 
 const gun = new Gun({
-    web: server, axe: axe,
-    multicast: multicast ? { port: port } : false
+    web: server, file: path.join(__dirname, 'radata'),
+    axe: axe, multicast: multicast ? { port: port } : false
 });
 
-if (argv.mode === 'development') {
+if (mode === 'development') {
     // log peer connections
 
     const listPeers = (peer, color) => Object.keys(gun._.opt.peers).reduce(

@@ -1,4 +1,4 @@
-import Gun                      from 'gun-api';
+import Gun                      from 'api/gun-api';
 //import { buildOutgoingHandler } from 'gun-api/gun-channel';
 
 // enable RAD storage adapter backed by IndexedDB

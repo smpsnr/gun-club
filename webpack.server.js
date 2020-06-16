@@ -1,14 +1,14 @@
-const path                   = require('path');
-const nodeExternals          = require('webpack-node-externals');
+const path          = require('path');
+const nodeExternals = require('webpack-node-externals');
 
 const rootPath = (...paths) => path.join(__dirname, ...paths);
-const srcPath  = (...paths) => rootPath('server',   ...paths);
+const srcPath  = (...paths) => rootPath('src',      ...paths);
 
-const config = mode => ({
+module.exports = {
     target   : 'node',
     externals: [ nodeExternals() ],
 
-    entry: { main: srcPath('gun-server.js') },
+    entry: { main: srcPath('api', 'gun-server.js') },
     node : { __dirname: false },
 
     output: {
@@ -28,11 +28,4 @@ const config = mode => ({
             }
         }]
     }
-});
-
-module.exports = (env, argv) => {
-    console.log('\x1b[33m',
-                `configuring webpack for ${ argv.mode }`, '\x1b[0m\n');
-
-    return config(argv.mode);
 };

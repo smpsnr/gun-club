@@ -1,7 +1,7 @@
 import AsyncLock       from 'async-lock';
 import { SEA }         from 'api/gun-peer';
 
-import * as GunChannel from 'gun-api/gun-channel';
+import * as GunChannel from 'api/gun-channel';
 import * as utils      from 'api/gun-utils';
 
 import network         from 'api/gun-network';

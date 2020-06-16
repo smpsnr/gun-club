@@ -38,7 +38,6 @@
         "core-js": "^3.6.5",
         "dotenv": "^8.2.0",
         "gun": "0.2020.520",
-        "gun-api": "file:server",
         "text-encoding": "^0.7.0",
         "vue": "^2.6.11",
         "vuex": "^3.3.0"

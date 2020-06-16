@@ -1,12 +1,12 @@
 import Gun                      from 'gun-api';
-import { buildOutgoingHandler } from 'gun-api/gun-channel';
+//import { buildOutgoingHandler } from 'gun-api/gun-channel';
 
 // enable RAD storage adapter backed by IndexedDB
 import 'gun/lib/radix'; import 'gun/lib/radisk';
 import 'gun/lib/store'; import 'gun/lib/rindexed';
 
 //! vuex dependency is circular - see below
-import store from '../store/index';
+//import store from '../store/index';
 
 const SEA = Gun.SEA;
 if (process.env.MODE === 'development') { SEA.throw = true; }
@@ -17,10 +17,10 @@ const useAxe = JSON.parse(process.env.AXE) || false;
 // configure channel request handler to load tokens from vuex
 // wrap getter function (store uses gun-adapter which depends on this module)
 
-const handleOutgoing = buildOutgoingHandler(
+/*const handleOutgoing = buildOutgoingHandler(
     channel => store.getters.getChannelByKey(channel));
 
-Gun.on('opt', handleOutgoing);
+Gun.on('opt', handleOutgoing);*/
 
 /**
  * @param each - called for each item with (val, key)

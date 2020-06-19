@@ -1,14 +1,16 @@
-import Gun             from './gun-api';
-import * as GunChannel from './gun-channel';
+import { Gun, GunChannel } from '../../dist/module.mjs';
 
-import 'gun/lib/store'; import 'gun/lib/rfs';
-import 'gun/lib/wire';  import 'gun/lib/evict';
+import 'gun/lib/store.js'; import 'gun/lib/rfs.js';
+import 'gun/lib/wire.js';  import 'gun/lib/evict.js';
 
-import 'gun/axe';
-import 'gun/lib/multicast';
+import 'gun/axe.js';
+import 'gun/lib/multicast.js';
 
 import express from 'express'; import https from 'https';
 import path    from 'path';    import fs    from 'fs';
+
+import { fileURLToPath } from 'url';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 import dotenv from 'dotenv';
 dotenv.config(); // load .env

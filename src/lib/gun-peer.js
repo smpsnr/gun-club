@@ -1,9 +1,9 @@
-import Gun                      from 'api/gun-api';
+import Gun                      from './gun-api.js';
 //import { buildOutgoingHandler } from 'gun-api/gun-channel';
 
 // enable RAD storage adapter backed by IndexedDB
-import 'gun/lib/radix'; import 'gun/lib/radisk';
-import 'gun/lib/store'; import 'gun/lib/rindexed';
+import 'gun/lib/radix.js'; import 'gun/lib/radisk.js';
+import 'gun/lib/store.js'; import 'gun/lib/rindexed.js';
 
 //! vuex dependency is circular - see below
 //import store from '../store/index';

@@ -2,44 +2,27 @@
     "name": "gun-template",
     "version": "0.1.0",
     "private": true,
+    "main": "dist/main.cjs",
+    "module": "dist/module.mjs",
+    "browser": "dist/browser.js",
     "scripts": {
-        "dev-gun": "cd server && rm -rf radata && node --inspect gun-server.js --mode=development",
-        "gun-node": "cd server && node gun-server.js --mode=production",
-        "dev-server": "webpack-dev-server --hot --progress --display-error-details --env=local --mode=development",
-        "dev-server-ios": "npm run dev-server -- --host='0.0.0.0' --allowed-hosts='.local'",
-        "dev": "webpack --watch --progress --display-error-details --mode=development --env=development",
-        "build": "eslint src --ext .vue --quiet && webpack --progress --display-error-details --env=sw --mode=production"
+        "build:cjs": "rollup src/module.mjs -o dist/main.cjs --format cjs --silent",
+        "build:esm": "rollup src/module.mjs -o dist/module.mjs --format esm --silent",
+        "build:umd": "webpack --mode development"
     },
     "devDependencies": {
         "@babel/core": "^7.10.2",
+        "@babel/plugin-transform-runtime": "^7.10.1",
         "@babel/preset-env": "^7.10.2",
         "babel-eslint": "^10.0.3",
         "babel-loader": "^8.0.6",
-        "clean-webpack-plugin": "^3.0.0",
-        "css-loader": "^3.5.3",
-        "dotenv-webpack": "^1.7.0",
         "eslint": "^6.8.0",
-        "eslint-plugin-vue": "^6.2.2",
-        "html-webpack-inline-source-plugin": "^0.0.10",
-        "html-webpack-plugin": "^3.2.0",
-        "vue-eslint-parser": "^7.0.0",
-        "vue-loader": "^15.9.1",
-        "vue-style-loader": "^4.1.2",
-        "vue-template-compiler": "^2.6.11",
+        "rollup": "^2.17.1",
         "webpack": "^4.43.0",
-        "webpack-cli": "^3.3.11",
-        "webpack-dev-server": "^3.10.3",
-        "webpack-inject-plugin": "^1.5.4",
-        "webpack-node-externals": "^1.7.2"
+        "webpack-cli": "^3.3.11"
     },
     "dependencies": {
-        "@peculiar/webcrypto": "^1.1.1",
         "async-lock": "^1.2.2",
-        "core-js": "^3.6.5",
-        "dotenv": "^8.2.0",
-        "gun": "0.2020.520",
-        "text-encoding": "^0.7.0",
-        "vue": "^2.6.11",
-        "vuex": "^3.3.0"
+        "gun": "0.2020.520"
     }
 }

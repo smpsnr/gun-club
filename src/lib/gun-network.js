@@ -1,4 +1,4 @@
-import { GunPeer, Gun } from 'api/gun-peer';
+import { GunPeer, Gun } from './gun-peer.js';
 
 /**
  * Add a new RTCPeerConnection for local routing

@@ -1,4 +1,4 @@
-import { SEA } from 'api/gun-peer';
+import { SEA } from './gun-peer.js';
 
 export async function hash(data) {
     const hash = await SEA.work(data, null, null, { name: 'SHA-256' });

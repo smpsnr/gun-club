@@ -1,10 +1,10 @@
 import AsyncLock       from 'async-lock';
-import { SEA }         from 'api/gun-peer';
+import { SEA }         from './gun-peer.js';
 
-import * as GunChannel from 'api/gun-channel';
-import * as utils      from 'api/gun-utils';
+import * as GunChannel from './gun-channel.js';
+import * as utils      from './gun-utils.js';
 
-import network         from 'api/gun-network';
+import network         from './gun-network.js';
 
 const port  = process.env.PORT || 8765;
 const relay = `${ location.protocol }//${ location.hostname }:${ port }/gun`;

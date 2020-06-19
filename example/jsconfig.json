@@ -1,0 +1,22 @@
+{
+    "compilerOptions": {
+        "baseUrl": ".",
+
+        "paths": {
+            "api/*"      : [ "src/api/*"       ],
+            "component/*": [ "src/component/*" ],
+            "store/*"    : [ "src/store/*"     ],
+        },
+
+        "checkJs"                     : true,
+        "noImplicitThis"              : true,
+        "allowSyntheticDefaultImports": true,
+
+        "module"          : "esnext",
+        "moduleResolution": "node",
+        "target"          : "es5"
+    },
+
+    "exclude": [ "node_modules", "dist" ],
+    "include": [ "src/**/*" ]
+}

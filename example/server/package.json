@@ -1,0 +1,9 @@
+{
+    "type": "module",
+    "private": true,
+    "dependencies": {
+        "@peculiar/webcrypto": "^1.1.1",
+        "express": "^4.17.1",
+        "text-encoding": "^0.7.0"
+    }
+}

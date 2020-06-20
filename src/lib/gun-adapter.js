@@ -6,14 +6,18 @@ import * as utils      from './gun-utils.js';
 
 import network         from './gun-network.js';
 
-const port  = process.env.PORT || 8765;
-const relay = `${ location.protocol }//${ location.hostname }:${ port }/gun`;
-
-const peers = network.join(relay);
-const user  = peers.user.user();
+//const port  = process.env.PORT || 8765;
+//const relay = `${ location.protocol }//${ location.hostname }:${ port }/gun`;
 
 const lock = new AsyncLock();
+
+let peers; let user;
 let principal = {};
+
+const init = relay => {
+    peers = network.join(relay);
+    user  = peers.user.user();
+};
 
 /**
  * Authenticate and set principal user
@@ -400,7 +404,7 @@ const sendMessage = async (userPub, message) => {
 };
 
 export default {
-    login, register, logout, reconnect, channels, peerEvents,
+    init, login, register, logout, reconnect, channels, peerEvents,
     addChannel, shareChannel, joinChannel, writeChannel, readChannel,
     findUser, chats, startChat, messages, sendMessage
 };

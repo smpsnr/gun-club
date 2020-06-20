@@ -12,7 +12,7 @@ const SEA = Gun.SEA;
 if (process.env.MODE === 'development') { SEA.throw = true; }
 
 let enabledRTC = false; // warn if enabling WebRTC for multiple peers
-const useAxe = JSON.parse(process.env.AXE) || false;
+//const useAxe = JSON.parse(process.env.AXE) || false;
 
 // configure channel request handler to load tokens from vuex
 // wrap getter function (store uses gun-adapter which depends on this module)
@@ -21,33 +21,6 @@ const useAxe = JSON.parse(process.env.AXE) || false;
     channel => store.getters.getChannelByKey(channel));
 
 Gun.on('opt', handleOutgoing);*/
-
-/**
- * @param each - called for each item with (val, key)
- * @ended ended - called once on map completion with (vals[], key)
- */
-Gun.prototype.valMapEnd = function(each, ended) {
-    const gun = this; const props = [];
-    const n = () => {};
-
-    let count = 0;
-    each = each || n; ended = ended || n;
-
-    gun.once(function(list) {
-        const args = Array.prototype.slice.call(arguments);
-
-        // @ts-ignore
-        Gun.node.is(list, (_, prop) => { count += 1; props.push(prop); });
-
-        props.forEach(prop => {
-            gun.get(prop).once(/**@this {import('types').GunRef}*/ function() {
-                count -= 1; each.apply(this, arguments);
-                if (!count) { ended.apply(this, args); }
-            });
-        });
-
-    }); return gun;
-};
 
 Gun.prototype.value = function(cb, opt) {
 
@@ -105,10 +78,11 @@ Gun.prototype.loadPathsAt = async function(at) {
  * Returns a new Gun instance
  */
 export const GunPeer = (
-    { name = '', useStorage = true, useRTC = false, peers = [] } = {}) => {
+    { name = '', useStorage = true, peers = [],
+    useRTC = false,  useAXE = false } = {}) => {
 
     if (useRTC) { // enable automatic peer signaling and discovery
-        if (useAxe) {
+        if (useAXE) {
             console.info('enabling AXE');    require('gun/axe');
         }   console.info('enabling WebRTC'); require('gun/lib/webrtc');
 

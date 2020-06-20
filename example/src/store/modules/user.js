@@ -1,10 +1,15 @@
-import Vue    from 'vue';
-import client from 'api/gun-adapter';
+import Vue        from 'vue';
+import { client } from 'gun-club';
 
 import { INIT, REGISTER, LOGIN, LOGOUT, RECONNECT,
     ADD_CHANNEL, SHARE_CHANNEL, JOIN_CHANNEL, WRITE_CHANNEL, READ_CHANNEL,
     FIND_USER, START_CHAT, WRITE_CHAT, READ_CHAT
 } from 'store/actions/user';
+
+const port  = process.env.PORT || 8765;
+const relay = `${ location.protocol }//${ location.hostname }:${ port }/gun`;
+
+client.init(relay);
 
 const state = {
     principal: null,

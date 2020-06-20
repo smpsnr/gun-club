@@ -8,21 +8,22 @@
     "scripts": {
         "build:cjs": "rollup src/module.mjs -o dist/main.cjs --format cjs --silent",
         "build:esm": "rollup src/module.mjs -o dist/module.mjs --format esm --silent",
-        "build:umd": "webpack --mode development"
+        "build:umd": "rollup src/module.mjs -o dist/browser.js -c"
     },
     "devDependencies": {
         "@babel/core": "^7.10.2",
         "@babel/plugin-transform-runtime": "^7.10.1",
         "@babel/preset-env": "^7.10.2",
+        "@rollup/plugin-babel": "^5.0.3",
+        "@rollup/plugin-commonjs": "^13.0.0",
+        "@rollup/plugin-node-resolve": "^8.0.1",
         "babel-eslint": "^10.0.3",
-        "babel-loader": "^8.0.6",
-        "eslint": "^6.8.0",
-        "rollup": "^2.17.1",
-        "webpack": "^4.43.0",
-        "webpack-cli": "^3.3.11"
+        "eslint": "^7.3.0",
+        "rollup": "^2.17.1"
     },
     "dependencies": {
         "async-lock": "^1.2.2",
+        "core-js": "^3.6.5",
         "gun": "0.2020.520"
     }
 }

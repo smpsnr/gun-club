@@ -1,5 +1,6 @@
 {
     "name": "gun-club-esm",
+    "private": true,
     "type": "module",
     "module": "module.js",
     "main": "module.js",

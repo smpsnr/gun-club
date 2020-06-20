@@ -1,5 +1,6 @@
 {
     "name": "gun-club-cjs",
+    "private": true,
     "type": "cjs",
     "module": "../esm/module.js",
     "main": "module.js",

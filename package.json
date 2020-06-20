@@ -11,8 +11,8 @@
         }
     },
     "scripts": {
-        "build:cjs": "rollup src/index.js -o dist/cjs/module.js --format cjs --silent",
-        "build:esm": "rollup src/index.js -o dist/esm/module.js --format esm --silent",
+        "build:cjs": "rollup src/index.js -o dist/cjs/module.js --format cjs --sourcemap --silent",
+        "build:esm": "rollup src/index.js -o dist/esm/module.js --format esm --sourcemap --silent",
         "build:iife": "rollup src/index.js -o dist/browser.js -c"
     },
     "devDependencies": {

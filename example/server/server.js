@@ -1,4 +1,4 @@
-import { Gun, GunChannel } from '../../dist/module.mjs';
+import { Gun, GunChannel } from 'gun-club';
 
 import 'gun/lib/store.js'; import 'gun/lib/rfs.js';
 import 'gun/lib/wire.js';  import 'gun/lib/evict.js';

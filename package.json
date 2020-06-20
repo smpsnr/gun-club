@@ -1,14 +1,19 @@
 {
-    "name": "gun-template",
+    "name": "gun-club",
     "version": "0.1.0",
     "private": true,
-    "main": "dist/main.cjs",
-    "module": "dist/module.mjs",
-    "browser": "dist/browser.js",
+    "module": "dist/esm/module.js",
+    "main": "dist/cjs/module.js",
+    "exports": {
+        ".": {
+            "import": "./dist/esm/module.js",
+            "require": "./dist/cjs/module.js"
+        }
+    },
     "scripts": {
-        "build:cjs": "rollup src/module.mjs -o dist/main.cjs --format cjs --silent",
-        "build:esm": "rollup src/module.mjs -o dist/module.mjs --format esm --silent",
-        "build:umd": "rollup src/module.mjs -o dist/browser.js -c"
+        "build:cjs": "rollup src/index.js -o dist/cjs/module.js --format cjs --silent",
+        "build:esm": "rollup src/index.js -o dist/esm/module.js --format esm --silent",
+        "build:iife": "rollup src/index.js -o dist/browser.js -c"
     },
     "devDependencies": {
         "@babel/core": "^7.10.2",

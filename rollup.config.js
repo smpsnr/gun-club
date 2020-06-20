@@ -10,7 +10,7 @@ export default {
     external: /gun\//,
 
     output: [{
-        format: 'umd', name: 'gun-club',
+        format: 'iife', name: 'gunclub',
         globals: { 'gun/gun.js': 'Gun' }
     }],
 

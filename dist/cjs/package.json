@@ -1,0 +1,12 @@
+{
+    "name": "gun-club-cjs",
+    "type": "cjs",
+    "module": "../esm/module.js",
+    "main": "module.js",
+    "exports": {
+        ".": {
+            "require": "./module.js",
+            "import": "../esm/module.js"
+        }
+    }
+}

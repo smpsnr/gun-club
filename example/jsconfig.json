@@ -8,15 +8,16 @@
             "store/*"    : [ "src/store/*"     ],
         },
 
-        "checkJs"                     : true,
-        "noImplicitThis"              : true,
+        "checkJs"                         : true,
+        "forceConsistentCasingInFileNames": true,
+
         "allowSyntheticDefaultImports": true,
+        "esModuleInterop"             : true,
 
-        "module"          : "esnext",
+        "module": "esnext",
+        "target": "esnext",
+
         "moduleResolution": "node",
-        "target"          : "es5"
-    },
 
-    "exclude": [ "node_modules", "dist" ],
-    "include": [ "src/**/*" ]
+    }, "include": [ "src/**/*", "server/**/*" ]
 }

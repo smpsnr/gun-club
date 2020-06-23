@@ -15,26 +15,19 @@ const webpack                = require('webpack');
 const rootPath = (...paths) => path.join(__dirname, ...paths);
 const srcPath  = (...paths) => rootPath('src',      ...paths);
 
-const config = (local, sw, mode) => ({
-    devtool: mode === 'production' ? undefined : 'cheap-module-eval-source-map',
+const config = (local, mode) => ({
+    entry: srcPath('index.js'),
 
-    entry: {
-        main: srcPath('index.js')
+    devtool: mode === 'production' ?
+        undefined : 'cheap-module-eval-source-map',
+
+    optimization: {
+        splitChunks : { chunks: 'all' }, runtimeChunk: 'single'
     },
 
     output: {
-        path: rootPath(mode === 'production'
-            ? 'dist'                  : 'dist-dev'),
-
-        filename:      mode === 'production'
-            ? '[name].[chunkhash].js' : '[name].[hash].js',
-
-        publicPath: '/'
-    },
-
-    optimization: {
-        splitChunks : { chunks: 'all' },
-        runtimeChunk: true
+        path: rootPath('dist'), filename: mode === 'production' ?
+            '[name].[chunkhash].js' : '[name].[hash].js'
     },
 
     node: {
@@ -46,9 +39,8 @@ const config = (local, sw, mode) => ({
         alias     : {
             'vue$': 'vue/dist/vue.esm.js',
 
-            'api'      : srcPath('api'),
             'component': srcPath('component'),
-            'store'    : srcPath('store'),
+            'store'    : srcPath('store')
         },
     },
 
@@ -65,7 +57,7 @@ const config = (local, sw, mode) => ({
             } ]] }
 
         }, {
-            test:  /\.(css|scss)$/,
+            test:  /\.css$/,
             use : [ 'vue-style-loader', 'css-loader' ]
         }],
 
@@ -84,11 +76,11 @@ const config = (local, sw, mode) => ({
         new VueLoaderPlugin(),
 
         new HtmlWebpackPlugin({
-            template    : srcPath('index.html'),
-            inlineSource: 'runtime~.+\\.js',
+            template: srcPath('index.html'),
+            inlineSource: 'runtime.+\\.js'
         }),
 
-        new InlineSourcePlugin(),
+        new InlineSourcePlugin(HtmlWebpackPlugin), // https://git.io/JfxVw
         new webpack.HashedModuleIdsPlugin(),
 
         // suppress log spam from modules
@@ -104,13 +96,10 @@ const config = (local, sw, mode) => ({
 });
 
 module.exports = (env, argv) => {
-
     let local = env && env.includes('local');
-    let sw    = env && env.includes('sw');
 
     console.log('\x1b[33m', `configuring webpack for ${ argv.mode }`,
-                `${ local ? 'on local server'     : '' }`,
-                `${ sw    ? 'with service worker' : '' }`, '\x1b[0m\n');
+                `${ local ? 'on local server'     : '' }`, '\x1b[0m\n');
 
-    return config(local, sw, argv.mode);
+    return config(local, argv.mode);
 };

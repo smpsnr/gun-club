@@ -1,11 +1,9 @@
 {
-    "name": "gun-template",
-    "version": "0.1.0",
     "private": true,
     "scripts": {
         "dev-gun": "cd server && rm -rf radata && node --inspect server.js --mode=development",
         "gun-node": "cd server && node gun-server.js --mode=production",
-        "dev-server": "webpack-dev-server --hot --progress --display-error-details --env=local --mode=development",
+        "dev-server": "webpack-dev-server --hot --progress --client-log-level warn --display-error-details --env=local --mode=development",
         "dev-server-ios": "npm run dev-server -- --host='0.0.0.0' --allowed-hosts='.local'",
         "dev": "webpack --watch --progress --display-error-details --mode=development --env=development",
         "build": "eslint src --ext .vue --quiet && webpack --progress --display-error-details --env=sw --mode=production"
@@ -16,8 +14,8 @@
         "css-loader": "^3.5.3",
         "dotenv-webpack": "^1.7.0",
         "eslint-plugin-vue": "^6.2.2",
-        "html-webpack-inline-source-plugin": "^0.0.10",
-        "html-webpack-plugin": "^3.2.0",
+        "html-webpack-inline-source-plugin": "^1.0.0-beta.2",
+        "html-webpack-plugin": "^4.3.0",
         "vue-eslint-parser": "^7.0.0",
         "vue-loader": "^15.9.1",
         "vue-style-loader": "^4.1.2",

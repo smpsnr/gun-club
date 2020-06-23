@@ -16,23 +16,16 @@ const srcPath  = (...paths) => rootPath('src',      ...paths);
 const browserslist =
     '>0.4%, last 1 version and not dead and >0.2%, not IE 11';
 
-const config = (local, mode) => ({
+const config = mode => ({
     entry: srcPath('index.js'),
-
-    devtool: mode === 'production' ?
-        undefined : 'cheap-module-eval-source-map',
 
     optimization: {
         splitChunks : { chunks: 'all' }, runtimeChunk: 'single'
     },
 
     output: {
-        path: rootPath('dist'), filename: mode === 'production' ?
-            '[name].[chunkhash].js' : '[name].[hash].js'
-    },
-
-    node: {
-        fs: 'empty', net: 'empty', tls: 'empty'
+        path: rootPath('dist'), filename: mode === 'development' ?
+            '[name].[hash].js' : '[name].[chunkhash].js'
     },
 
     resolve: {
@@ -66,30 +59,27 @@ const config = (local, mode) => ({
         new DotenvWebpackPlugin(), new VueLoaderPlugin(),
 
         new HtmlWebpackPlugin({
-            template: srcPath('index.html'),
-            inlineSource: 'runtime.+\\.js'
+            template: srcPath('index.html'), inlineSource: 'runtime.+\\.js'
         }),
-
         new InlineSourcePlugin(HtmlWebpackPlugin), // see https://git.io/JfxVw
         new HashedModuleIdsPlugin(),
 
-        // suppress log spam from modules
+        ...(mode === 'development' ? [ // suppress log spam from modules
 
-        new InjectPlugin(() => `
-            window.cvclnk_log = window.console['log'];
-            window.console['log'] = () => {};`, { entryOrder: ENTRY_ORDER.NotLast }),
+            new InjectPlugin(() => `console.blg=console['log'];
+                console['log']=()=>{};`, { entryOrder: ENTRY_ORDER.NotLast }),
 
-        new InjectPlugin(() => `
-            window.console["log"] = window.cvclnk_log;
-            delete window.cvclnk_log;`, { entryOrder: ENTRY_ORDER.Last })
-    ]
+            new InjectPlugin(() => `console['log']=console.blg;
+                delete console.blg;`, { entryOrder: ENTRY_ORDER.Last }) ] : [])
+    ],
+
+    ...(mode === 'development' ? { // configure dev server
+
+        devServer: { contentBase: false, compress: true },
+        devtool: 'cheap-module-eval-source-map' } : {}),
 });
 
 module.exports = (env, argv) => {
-    let local = env && env.includes('local');
-
-    console.log('\x1b[33m', `configuring webpack for ${ argv.mode }`,
-                `${ local ? 'on local server'     : '' }`, '\x1b[0m\n');
-
-    return config(local, argv.mode);
+    console.log('\x1b[33m', `webpack - ${ argv.mode }`, '\x1b[0m\n');
+    return config(argv.mode);
 };

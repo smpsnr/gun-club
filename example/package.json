@@ -3,7 +3,7 @@
     "scripts": {
         "dev-gun": "cd server && rm -rf radata && node --inspect server.js --mode=development",
         "gun-node": "cd server && node gun-server.js --mode=production",
-        "dev-server": "NODE_OPTIONS='-r @babel/register' webpack-dev-server --hot --progress --client-log-level warn --display-error-details --env=local --mode=development",
+        "dev-server": "NODE_OPTIONS='-r @babel/register' webpack-dev-server --hot --client-log-level warn --progress --display-error-details --env=local --mode=development",
         "dev-server-ios": "npm run dev-server -- --host='0.0.0.0' --allowed-hosts='.local'",
         "dev": "webpack --watch --progress --display-error-details --mode=development --env=development",
         "build": "eslint src --ext .vue --quiet && webpack --progress --display-error-details --env=sw --mode=production"

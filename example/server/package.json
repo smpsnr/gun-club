@@ -1,11 +1,4 @@
 {
     "type": "module",
-    "private": true,
-    "dependencies": {
-        "@peculiar/webcrypto": "^1.1.1",
-        "text-encoding": "^0.7.0"
-    },
-    "peerDependencies": {
-        "express": "^4.17.1"
-    }
+    "private": true
 }

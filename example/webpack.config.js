@@ -1,19 +1,20 @@
-const { CleanWebpackPlugin } = require('clean-webpack-plugin');
-const { VueLoaderPlugin }    = require('vue-loader');
+import { DefinePlugin, HashedModuleIdsPlugin } from 'webpack';
+import InjectPlugin, { ENTRY_ORDER }           from 'webpack-inject-plugin';
 
-const DotenvWebpackPlugin    = require('dotenv-webpack');
+import { CleanWebpackPlugin } from 'clean-webpack-plugin';
+import { VueLoaderPlugin }    from 'vue-loader';
 
-const HtmlWebpackPlugin      = require('html-webpack-plugin');
-const InlineSourcePlugin     = require('html-webpack-inline-source-plugin');
+import HtmlWebpackPlugin      from 'html-webpack-plugin';
+import InlineSourcePlugin     from 'html-webpack-inline-source-plugin';
 
-const InjectPlugin           = require('webpack-inject-plugin').default;
-const ENTRY_ORDER            = require('webpack-inject-plugin').ENTRY_ORDER;
-
-const path                   = require('path');
-const webpack                = require('webpack');
+import DotenvWebpackPlugin    from 'dotenv-webpack';
+import path                   from 'path';
 
 const rootPath = (...paths) => path.join(__dirname, ...paths);
 const srcPath  = (...paths) => rootPath('src',      ...paths);
+
+const browserslist =
+    '>0.4%, last 1 version and not dead and >0.2%, not IE 11';
 
 const config = (local, mode) => ({
     entry: srcPath('index.js'),
@@ -35,53 +36,42 @@ const config = (local, mode) => ({
     },
 
     resolve: {
-        extensions: [ '.js', '.vue' ],
-        alias     : {
+        extensions: [ '.js', '.vue' ], alias: {
             'vue$': 'vue/dist/vue.esm.js',
-
-            'component': srcPath('component'),
-            'store'    : srcPath('store')
-        },
+            'component': srcPath('component'), 'store': srcPath('store')
+        }
     },
 
-    module : {
+    module: {
         rules: [{
-            test   : /\.vue$/, loader: 'vue-loader',
-
-        }, {
-            test   : /\.js$/,  loader: 'babel-loader',
-            include: [ srcPath() ],
+            test: /\.js$/, loader: 'babel-loader', include: srcPath(),
 
             options: { presets: [[ '@babel/preset-env', {
-                modules: false, useBuiltIns: 'usage', corejs: 'core-js@3'
-            } ]] }
+                modules    : false,   targets: browserslist,
+                useBuiltIns: 'usage', corejs : 'core-js@3'
 
+            } ]], babelrc: false } // override config in package.json
         }, {
-            test:  /\.css$/,
-            use : [ 'vue-style-loader', 'css-loader' ]
+            test: /\.vue$/, loader: 'vue-loader'
+        }, {
+            test: /\.css$/, use: [ 'vue-style-loader', 'css-loader' ]
         }],
-
-        noParse: /node_modules\/gun\/(gun|sea|axe)\.js$/ // see https://git.io/Jv2K2
+        noParse: /gun\/(gun|sea|axe)\.js$/ // see https://git.io/Jv2K2
     },
 
     plugins: [
-        ...(local ? [ // dev server only
-            new CleanWebpackPlugin() ] : []),
+        new CleanWebpackPlugin({ cleanStaleWebpackAssets: false }),
+        new DefinePlugin({ 'process.env': { MODE: JSON.stringify(mode) } }),
 
-        new webpack.DefinePlugin({
-            'process.env': { MODE: JSON.stringify(mode) }
-        }),
-
-        new DotenvWebpackPlugin(),
-        new VueLoaderPlugin(),
+        new DotenvWebpackPlugin(), new VueLoaderPlugin(),
 
         new HtmlWebpackPlugin({
             template: srcPath('index.html'),
             inlineSource: 'runtime.+\\.js'
         }),
 
-        new InlineSourcePlugin(HtmlWebpackPlugin), // https://git.io/JfxVw
-        new webpack.HashedModuleIdsPlugin(),
+        new InlineSourcePlugin(HtmlWebpackPlugin), // see https://git.io/JfxVw
+        new HashedModuleIdsPlugin(),
 
         // suppress log spam from modules
 

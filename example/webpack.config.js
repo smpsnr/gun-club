@@ -49,7 +49,7 @@ const config = mode => ({
         }, {
             test: /\.css$/, use: [ 'vue-style-loader', 'css-loader' ]
         }],
-        noParse: /gun\/(gun|sea|axe)\.js$/ // see https://git.io/Jv2K2
+        noParse: /(gun|sea|axe)\.js$/ // see https://git.io/Jv2K2
     },
 
     plugins: [

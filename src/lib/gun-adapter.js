@@ -268,6 +268,12 @@ const shareChannel = async (channelPub, userPub, perm) => {
     });
 };
 
+const inviteChannel = async (perm) => {
+    user.create('test', 'test', ack => {
+
+    });
+};
+
 /**
  * Join a channel previously shared with principal
  * @param { string } pub - public key of channel

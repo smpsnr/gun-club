@@ -38,6 +38,22 @@
             <h2> #{{ curChannel.name }} </h2>
 
             <form v-if="curChannel.perm === 'admin'">
+                <b> Invite </b> <!-- channel invite -->
+
+                <input v-model="inviteURL" placeholder=""
+                       type="text" readonly="true" class="key">
+
+                <select v-model="invitePerm">
+                    <option value="read">  read  </option>
+                    <option value="write"> write </option>
+                    <option value="admin"> admin </option>
+                </select>
+
+                <input value="Invite" type="button"
+                       @click="inviteChannel()">
+            </form>
+
+            <form v-if="curChannel.perm === 'admin'">
                 <b> Share </b> <!-- channel share -->
 
                 <input v-model="sharePub" placeholder="Pub"
@@ -94,6 +110,7 @@ export default {
         newChannelName: '',    joinChannelPub: '',
         showChannel   : false, curChannel    : null,
 
+        inviteURL     : '',    invitePerm    : 'read',
         sharePub      : '',    sharePerm     : 'read',
         writeData     : '',    writePath     : '',
     }),
@@ -106,6 +123,10 @@ export default {
     methods: {
         addChannel() {
             this.$store.dispatch(ADD_CHANNEL, this.newChannelName);
+        },
+
+        inviteChannel() {
+            this.inviteURL = 'dfg';
         },
 
         shareChannel() {

@@ -96,6 +96,19 @@ export default {
         peers  : state => state.user.peers
     }),
 
+// http://localhost:8080/#/invite?user=lol&channel=bad
+    beforeRouteEnter(to, from, next) {
+
+        if (to.path === '/invite') {
+            console.info('handling invitation');
+
+            const userPair   = to.query.user;
+            const channelPub = to.query.channel;
+        }
+
+        next();
+    },
+
     created() {
         this.$store.dispatch(INIT);
     },

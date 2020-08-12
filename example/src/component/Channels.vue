@@ -31,67 +31,9 @@
 
     </table>
 
-    <div v-if="showChannel" class="modal" @click="showChannel = false">
-        <!-- channel modal -->
-
-        <section @click="$event.stopPropagation()">
-            <h2> #{{ curChannel.name }} </h2>
-
-            <form v-if="curChannel.perm === 'admin'">
-                <b> Invite </b> <!-- channel invite -->
-
-                <input v-model="inviteURL" placeholder=""
-                       type="text" readonly="true" class="key">
-
-                <select v-model="invitePerm">
-                    <option value="read">  read  </option>
-                    <option value="write"> write </option>
-                    <option value="admin"> admin </option>
-                </select>
-
-                <input value="Invite" type="button"
-                       @click="inviteChannel()">
-            </form>
-
-            <form v-if="curChannel.perm === 'admin'">
-                <b> Share </b> <!-- channel share -->
-
-                <input v-model="sharePub" placeholder="Pub"
-                       type="text" class="key">
-
-                <select v-model="sharePerm">
-                    <option value="read">  read  </option>
-                    <option value="write"> write </option>
-                    <option value="admin"> admin </option>
-                </select>
-
-                <input value="Share" type="button"
-                       @click="shareChannel()">
-            </form>
-            <form v-if="
-                curChannel.perm === 'admin' || curChannel.perm === 'write'">
-                <b> Write </b> <!-- channel write -->
-
-                <input v-model="writePath" placeholder="Path"
-                       type="text" class="key">
-
-                <input v-model="writeData" placeholder="Data"
-                       type="text" class="key">
-
-                <input value="Write" type="button" @click="writeChannel()">
-                <br> <br>
-            </form>
-
-            <table>
-                <tr> <th> Key </th> <th> Value </th> </tr>
-                <tr v-for="(val, key) in contents[curChannel.pub]" :key="key">
-
-                    <td> {{ key }} </td>
-                    <td> {{ val }} </td>
-                </tr>
-            </table>
-
-        </section>
+    <div class="modal" v-if="showChannel" @click="showChannel = false">
+        <ChannelModal
+            :channel="curChannel" :content="contents[curChannel.pub]" />
     </div>
 
 </div>
@@ -100,19 +42,18 @@
 <script>
 import { mapState } from 'vuex';
 
-import { ADD_CHANNEL, SHARE_CHANNEL, JOIN_CHANNEL, WRITE_CHANNEL, READ_CHANNEL
+import { ADD_CHANNEL, JOIN_CHANNEL, READ_CHANNEL
 } from 'store/actions/user';
+
+import ChannelModal from 'component/ChannelModal.vue';
 
 export default {
     name: 'Channels',
+    components: { ChannelModal },
 
     data: () => ({
         newChannelName: '',    joinChannelPub: '',
-        showChannel   : false, curChannel    : null,
-
-        inviteURL     : '',    invitePerm    : 'read',
-        sharePub      : '',    sharePerm     : 'read',
-        writeData     : '',    writePath     : '',
+        showChannel   : false, curChannel    : null
     }),
 
     computed: mapState({
@@ -125,27 +66,8 @@ export default {
             this.$store.dispatch(ADD_CHANNEL, this.newChannelName);
         },
 
-        inviteChannel() {
-            this.inviteURL = 'dfg';
-        },
-
-        shareChannel() {
-            this.$store.dispatch(SHARE_CHANNEL, {
-                channelPub: this.curChannel.pub,
-                userPub   : this.sharePub,
-                perm      : this.sharePerm,
-            });
-        },
-
         joinChannel() {
             this.$store.dispatch(JOIN_CHANNEL, this.joinChannelPub);
-        },
-
-        writeChannel() {
-            this.$store.dispatch(WRITE_CHANNEL, {
-                pub: this.curChannel.pub,
-                path: this.writePath, data: this.writeData
-            });
         },
 
         openChannelModal(channel) {
